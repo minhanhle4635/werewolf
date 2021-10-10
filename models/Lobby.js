@@ -19,7 +19,8 @@ const LobbySchema = new mongoose.Schema({
     unique: true,
   },
   players: {
-    type: [String],
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'user',
   },
   lobbyName: {
     type: String,
@@ -44,11 +45,16 @@ const LobbySchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['open', 'closed'],
+    default: 'open',
   },
-  private: {
-    type: Boolean,
-    required: true,
-    default: false,
+  privacyStatus: {
+    type: String,
+    enum: ['Private', 'Public'],
+    default: 'Public',
+  },
+  password: {
+    type: String,
+    default: '',
   },
 });
 

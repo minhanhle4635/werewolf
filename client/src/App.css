@@ -575,3 +575,20 @@ button {
     padding: 0.3rem 0.4rem;
   }
 }
+
+/* Lobby page */
+.lobby-form .lobby-form-header {
+  background: var(--primary-color);
+  padding: 0.5rem;
+}
+
+.lobby {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  grid-gap: 2rem;
+  align-items: center;
+}
+
+.lobby img {
+  width: 100px;
+}

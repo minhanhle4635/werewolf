@@ -1,7 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
 import {
   GET_LOBBIES,
+  GET_LOBBY,
   JOIN_LOBBY,
+  LEAVE_LOBBY,
   LOBBY_CREATED,
   LOBBY_DISBANDED,
   LOBBY_ERROR,
@@ -23,16 +25,32 @@ export default function (state = initialState, action) {
         lobbies: payload,
         loading: false,
       };
-    case JOIN_LOBBY:
+    case GET_LOBBY:
       return {
         ...state,
         lobby: payload,
         loading: false,
       };
+    case JOIN_LOBBY:
+      return {
+        ...state,
+        lobbies: state.lobbies.map((lobby) =>
+          lobby._id === payload.id
+            ? { ...lobby, players: payload.players }
+            : lobby
+        ),
+        loading: false,
+      };
     case LOBBY_CREATED:
       return {
         ...state,
-        lobbies: [payload, ...state.lobbies],
+        lobby: payload,
+        loading: false,
+      };
+    case LEAVE_LOBBY:
+      return {
+        ...state,
+        lobbies: [payload],
         loading: false,
       };
     case LOBBY_DISBANDED:

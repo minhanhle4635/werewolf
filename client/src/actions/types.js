@@ -22,6 +22,7 @@ export const ADD_COMMENT = 'ADD_COMMENT';
 export const REMOVE_COMMENT = 'REMOVE_COMMENT';
 export const LOBBY_CREATED = 'LOBBY_CREATED';
 export const GET_LOBBIES = 'GET_LOBBIES';
+export const GET_LOBBY = 'GET_LOBBY';
 export const LOBBY_ERROR = 'LOBBY_ERROR';
 export const LOBBY_DISBANDED = 'LOBBY_DISBANDED';
 export const JOIN_LOBBY = 'JOIN_LOBBY';

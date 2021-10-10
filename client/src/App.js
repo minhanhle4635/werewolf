@@ -13,7 +13,11 @@ import EditProfile from './component/profile-form/EditProfile';
 import Profiles from './component/profiles/Profiles';
 import Profile from './component/profile/Profile';
 import Posts from './component/posts/Posts';
+import Post from './component/post/Post';
 import Lobbies from './component/lobbies/Lobbies';
+import LobbyForm from './component/lobbies/LobbyForm';
+import Lobby from './component/lobby/Lobby';
+import Game from './component/game/Game';
 
 //Redux
 import { Provider } from 'react-redux';
@@ -21,7 +25,6 @@ import store from './store';
 import { loadUser } from './actions/auth';
 
 import './App.css';
-import Post from './component/post/Post';
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -61,6 +64,9 @@ const App = () => {
               <PrivateRoute exact path="/posts" component={Posts} />
               <PrivateRoute exact path="/posts/:id" component={Post} />
               <PrivateRoute exact path="/lobbies" component={Lobbies} />
+              <PrivateRoute exact path="/lobby/:id" component={Lobby} />
+              <PrivateRoute exact path="/create-lobby" component={LobbyForm} />
+              <PrivateRoute exact path="/game/:id" component={Game} />
             </Switch>
           </section>
         </Fragment>

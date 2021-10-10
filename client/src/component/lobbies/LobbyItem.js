@@ -6,40 +6,60 @@ import Moment from 'react-moment';
 import { joinLobby } from '../../actions/lobby';
 
 const LobbyItem = ({
-  auth,
-  lobby: { _id, lobbyName, owner, players, date, maxParticipants, description },
+  lobby: {
+    _id,
+    lobbyName,
+    owner: { name, avatar, owner_id },
+    players,
+    date,
+    maxParticipants,
+    description,
+    privacyStatus,
+  },
+  showActions,
+  joinLobby,
 }) => (
-  <div className="post bg-white p-1 my-1">
-    <div>
-      <Link to={`/profile/${owner._id}`}>
-        <img className="round-img" src={owner.avatar} alt="" />
-        <h4>Owner: {owner.name}</h4>
-      </Link>
+  <Fragment>
+    <div className="post bg-white p-1 my-1">
+      <div>
+        <img className="round-img" src={avatar} alt="" />
+        <h4>
+          Owner: <Link to={`/profile/${owner_id}`}>{name}</Link>
+        </h4>
+      </div>
+      <div>
+        <p className="lobby-name">Room Name: {lobbyName}</p>
+        <p className="lobby-max">
+          Slots: {players.length}/{maxParticipants}
+        </p>
+        <p className="lobby-date">
+          Created at <Moment format="YYYY/MM/DD">{date}</Moment>
+        </p>
+        <p className="lobby-desc">
+          Desc: {description} <br />
+          Privacy Status: {privacyStatus}
+        </p>
+      </div>
+      <div>
+        <Link
+          to={`/lobby/${_id}`}
+          className="btn btn-primary"
+          onClick={(e) => joinLobby(_id)}
+        >
+          Join Lobby
+        </Link>
+      </div>
     </div>
-    <div>
-      <p className="lobby-name">Room Name: {lobbyName}</p>
-      <p className="lobby-max">
-        Slots: {players.length}/{maxParticipants}
-      </p>
-      <p className="lobby-date">
-        Created at <Moment format="YYYY/MM/DD">{date}</Moment>
-      </p>
-      <p className="lobby-desc">Desc: {description}</p>
-    </div>
-    <Link to={`/lobby/${_id}`} className="btn btn-primary">
-      Join Lobby
-    </Link>
-  </div>
+  </Fragment>
 );
+
+LobbyItem.defaultProps = {
+  showActions: true,
+};
 
 LobbyItem.propTypes = {
   lobby: PropTypes.object.isRequired,
-  auth: PropTypes.object.isRequired,
   joinLobby: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = (state) => ({
-  auth: state.auth,
-});
-
-export default connect(mapStateToProps, { joinLobby })(LobbyItem);
+export default connect(null, { joinLobby })(LobbyItem);
