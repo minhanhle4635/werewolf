@@ -1,4 +1,0 @@
-{
-    "mongoURI" : "mongodb+srv://minhanhle:minhanh123@cluster0.nqhz7.gcp.mongodb.net/Database?retryWrites=true&w=majority",
-    "jwtSecret": "mysecrettoken"
-}

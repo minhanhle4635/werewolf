@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { disconnect } from 'mongoose';
+import { io } from 'socket.io-client';
 import { setAlert } from './alert';
 import {
   LOBBY_CREATED,
@@ -14,7 +14,7 @@ import {
 //Get All Lobbies
 export const getLobbies = () => async (dispatch) => {
   try {
-    const res = await axios.get('/api/lobby');
+    const res = await axios.get('/api/room');
 
     dispatch({
       type: GET_LOBBIES,
@@ -37,7 +37,7 @@ export const createLobby = (formData) => async (dispatch) => {
   };
 
   try {
-    const res = await axios.post('/api/lobby', formData, config);
+    const res = await axios.post('/api/room', formData, config);
 
     dispatch({
       type: LOBBY_CREATED,
@@ -56,7 +56,7 @@ export const createLobby = (formData) => async (dispatch) => {
 //Get lobby
 export const getLobby = (id) => async (dispatch) => {
   try {
-    const res = await axios.get(`/api/lobby/${id}`);
+    const res = await axios.get(`/api/room/${id}`);
 
     dispatch({
       type: GET_LOBBY,
@@ -73,7 +73,7 @@ export const getLobby = (id) => async (dispatch) => {
 //Disband lobby
 export const disbandLobby = (id) => async (dispatch) => {
   try {
-    await axios.delete(`/api/posts/${id}`);
+    await axios.delete(`/api/room/${id}`);
 
     dispatch({
       type: LOBBY_DISBANDED,
@@ -92,7 +92,8 @@ export const disbandLobby = (id) => async (dispatch) => {
 //Join lobby
 export const joinLobby = (id) => async (dispatch) => {
   try {
-    const res = await axios.put(`/api/lobby/join/${id}`);
+    // room information
+    const res = await axios.put(`/api/room/join/${id}`);
 
     dispatch({
       type: JOIN_LOBBY,
@@ -116,7 +117,7 @@ export const joinLobby = (id) => async (dispatch) => {
 //Leave lobby
 export const leaveLobby = (id) => async (dispatch) => {
   try {
-    const res = await axios.put(`/api/lobby/leave/${id}`);
+    const res = await axios.put(`/api/room/leave/${id}`);
 
     dispatch({
       type: LEAVE_LOBBY,
