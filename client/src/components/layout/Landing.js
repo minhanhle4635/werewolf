@@ -17,7 +17,7 @@ const Landing = ({ isAuthenticated }) => {
           <p className="lead">
             A survior game that you can play with your friend
           </p>
-          <div class="buttons">
+          <div className="buttons">
             <Link to="/register" className="btn btn-primary">
               Sign Up
             </Link>
