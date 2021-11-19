@@ -79,17 +79,30 @@ router.get('/:id', auth, async (req, res) => {
     const stayedRoom = await Room.find({
       status: 'open',
       players: { $in: req.user.id },
-    });
+    }).select(['+roles']);
+
+    let returnedRoom;
 
     if (stayedRoom.length === 0) {
-      const givenRoom = await Room.findById(req.params.id).populate('players', [
-        'name',
-        'avatar',
-      ]);
-      return res.json(givenRoom);
+      const givenRoom = await Room.findById(req.params.id)
+        .populate('players', ['name', 'avatar'])
+        .select(['+roles']);
+      returnedRoom = givenRoom;
     } else {
-      return res.json(stayedRoom[0]);
+      returnedRoom = stayedRoom[0];
     }
+
+    returnedRoom.roles = returnedRoom.roles[req.user.id];
+    /**
+     * roles = {
+     *    1: 'villager'
+     *    2: 'woft',
+     *    3: 'villager'
+     * }
+     * to
+     * roles = 'villager';
+     */
+    return res.json(returnedRoom);
   } catch (err) {
     console.log(err);
     return res.status(500).json({ msg: 'Server Error' });

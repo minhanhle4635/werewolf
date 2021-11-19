@@ -1,25 +1,41 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import Spinner from '../layout/Spinner';
 import RoomItem from '../room/RoomItem';
-import {getLobby} from '../../actions/lobby';
+import { getLobby } from '../../actions/lobby';
+import io from 'socket.io-client';
 
-const Room = ({ getLobby, lobby: { lobby, loading }, match }) => {
+const ENDPOINT = 'http://localhost:5000';
+
+let socket = io(ENDPOINT);
+
+const Room = ({ getLobby, lobby: { lobby, loading }, auth, match }) => {
+  const { user } = auth;
+
   useEffect(() => {
     getLobby(match.params.id);
-  }, [getLobby, match.params.id]);
+    socket.emit(
+      'JOIN_ROOM',
+      { roomInformation: lobby, userJoined: user._id },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }, []);
 
-  return loading || lobby === null ? <Spinner/> : <RoomItem/>;
+  return loading || lobby === null ? <Spinner /> : <RoomItem />;
 };
 
 Room.propTypes = {
   getLobby: PropTypes.func.isRequired,
   lobby: PropTypes.object.isRequired,
+  auth: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   lobby: state.lobby,
+  auth: state.auth,
 });
 
 export default connect(mapStateToProps, { getLobby })(Room);

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import setAuthToken from '../utils/setAuthToken';
 import { setAlert } from './alert';
-import { REGISTER_SUCCESS, REGISTER_FAIL } from './types';
+import { REGISTER_SUCCESS, REGISTER_FAIL, LEAVE_LOBBY } from './types';
 import { USER_LOADED, AUTH_ERRORS } from './types';
 import { LOGIN_SUCCESS, LOGIN_FAIL } from './types';
 import { LOGOUT } from './types';
@@ -95,5 +95,6 @@ export const login = (email, password) => async (dispatch) => {
 //Logout/ Clear Profile
 export const logout = () => (dispatch) => {
   dispatch({ type: CLEAR_PROFILE });
+  dispatch({ type: LEAVE_LOBBY });
   dispatch({ type: LOGOUT });
 };

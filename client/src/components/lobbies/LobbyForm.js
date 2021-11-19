@@ -64,12 +64,7 @@ const LobbyForm = ({ createLobby }) => {
             onChange={(e) => onChange(e)}
           />
         </div>
-        <input
-          type="submit"
-          className="btn btn-dark my-1"
-          value="Submit"
-          // onClick={handleClick}
-        />
+        <input type="submit" className="btn btn-dark my-1" value="Submit" />
       </form>
     </div>
   );
@@ -77,6 +72,7 @@ const LobbyForm = ({ createLobby }) => {
 
 LobbyForm.propTypes = {
   createLobby: PropTypes.func.isRequired,
+  lobby: PropTypes.object.isRequired,
 };
 
 export default connect(null, { createLobby })(LobbyForm);

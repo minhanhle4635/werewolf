@@ -5,6 +5,28 @@ const RoomSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'user',
   },
+  // {[_id: string]: string (role)}
+  roles: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+    select: false,
+  },
+  // Alive or Dead Status
+  // {[_id: string]: string (DEAD|ALIVE)}
+  playerStatus: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
+  phase: {
+    type: String,
+    enum: ['DAY', 'NIGHT'],
+    default: 'DAY',
+  },
+  turn: {
+    type: Number,
+    required: true,
+    default: 1,
+  },
   lobbyName: {
     type: String,
     required: true,
@@ -15,7 +37,7 @@ const RoomSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    default: Date.now,
+    default: new Date(),
   },
   description: {
     type: String,
@@ -27,8 +49,8 @@ const RoomSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['open', 'closed'],
-    default: 'open',
+    enum: ['OPEN', 'PLAYING', 'CLOSED'],
+    default: 'OPEN',
   },
 });
 

@@ -1,8 +1,8 @@
-import React, {Fragment} from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
-import {joinLobby} from '../../actions/lobby';
+import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { joinLobby } from '../../actions/lobby';
 import io from 'socket.io-client';
 
 const ENDPOINT = 'http://localhost:5000';
@@ -24,25 +24,25 @@ const LobbyItem = ({
     <Fragment>
       <div className="post bg-white p-1 my-1">
         <div>
-          <img className="round-img" src={ avatar } alt=""/>
+          <img className="round-img" src={avatar} alt="" />
           <h4>
-            Owner: <Link to={ `/profile/${ owner_id }` }>{ name }</Link>
+            Owner: <Link to={`/profile/${owner_id}`}>{name}</Link>
           </h4>
         </div>
         <div>
-          <p className="lobby-name">Room Name: { lobbyName }</p>
+          <p className="lobby-name">Room Name: {lobbyName}</p>
           <p className="lobby-max">
-            Slots: { players.length }/{ maxParticipants }
+            Slots: {players.length}/{maxParticipants}
           </p>
           <p className="lobby-desc">
-            Desc: { description } <br/>
+            Desc: {description} <br />
           </p>
         </div>
         <div>
           <Link
-            to={ `/room/${ _id }` }
+            to={`/room/${_id}`}
             className="btn btn-primary"
-            onClick={ (e) => joinLobby(_id) }
+            onClick={(e) => joinLobby(_id)}
           >
             Join Lobby
           </Link>
