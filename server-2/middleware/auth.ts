@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
-import * as config from 'config';
+import config from 'config';
 import { NextFunction, Request, Response } from 'express'
 import { IUserDocument } from "../interface/User.interface";
 

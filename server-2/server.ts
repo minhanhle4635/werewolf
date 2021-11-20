@@ -125,3 +125,6 @@ eventEmitter.addListener('ROOM_TURN_DAY_START', async function (roomInfo) {
 		io.to(roomDB.id).emit('VOTE_COUNTED', roomDB);
 	}, 30000);
 });
+
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`Server started on port ${PORT} `));

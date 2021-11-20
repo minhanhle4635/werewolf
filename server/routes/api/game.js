@@ -1,18 +1,85 @@
 const express = require('express');
 const Room = require('../../models/Room');
+const Vote = require('../../models/Vote');
 const router = express.Router();
-const events = require('events');
+const GameEvent = require('../../event/game.event');
+const auth = require('../../middleware/auth');
 
 /**
  * Start game
  */
-router.get('/:roomId', async (req, res) => {
+router.get('/:roomId', auth, async (req, res) => {
   //Assign role
   const roomInfo = await Room.findById(req.params.roomId);
-  const voteInfo = await Vote.remove({
+
+  if (!roomInfo || roomInfo.status === 'CLOSED') {
+    return res.status(400).json({ msg: 'Wrong' });
+  }
+  await Vote.deleteMany({
     roomId: roomInfo.id,
   });
+  const playerStatus = createInitialStatus(roomInfo);
+  const initRoles = createInitialRoles(roomInfo);
+  roomInfo.roles = initRoles;
+  roomInfo.playerStatus = playerStatus;
+  roomInfo.status = 'PLAYING';
+  await roomInfo.save();
 
+  const returnObject = roomInfo.toObject();
+  // this event is global?
+  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', returnObject);
+  returnObject.roles = returnObject.roles[req.user.id];
+  return res.json(returnObject);
+});
+
+//POST players roles do vote
+//Create a new schema: turn, phase, trigger, targeted
+router.post('/:id/vote', async (req, res) => {
+  const roomInfo = await Room.findById(req.params.id).select(['+roles']);
+
+  if (!roomInfo) {
+    return res.status(404).send('room khong ton tai`');
+  }
+
+  if (roomInfo.playerStatus[req.user.id] === 'DEAD') {
+    return res.status(400).send('may chet roi`');
+  }
+
+  if (roomInfo.roles[req.user.id] === 'villager') {
+    if (roomInfo.phase === 'NIGHT') {
+      return res.status(400).json('bo lao vcl');
+    }
+  }
+
+  return handleVote(roomInfo, req, res);
+});
+
+//function rollDice
+function rollDice(remainRoles) {
+  if (remainRoles.length === 0) {
+    return null;
+  }
+
+  var randomIndex = Math.floor(Math.random() * remainRoles.length);
+  var randomRole = remainRoles[randomIndex];
+  remainRoles.splice(randomIndex, 1);
+
+  return randomRole;
+}
+
+function generateRolesOnNumberOfPlayer(amount) {
+  const initialArr = ['WOLF', 'VILLAGER'];
+  if (amount <= 2) {
+    return initialArr;
+  }
+  for (let i = 0; i < amount - 2; i++) {
+    initialArr.push('VILLAGER');
+  }
+  return initialArr;
+}
+
+function createInitialRoles(roomInfo) {
+  const remainRoles = generateRolesOnNumberOfPlayer(roomInfo.players.length);
   const roles = {};
   /**
    * P1: id=1
@@ -36,39 +103,27 @@ router.get('/:roomId', async (req, res) => {
      *
      * roles[user.id] === "villager"
      */
-    roles[player.id] = rollDice(remainRoles);
+    const roleToAssign = rollDice(remainRoles);
+    if (!roleToAssign) {
+      return null;
+    }
+    roles[player.toString()] = roleToAssign;
   });
-  roomInfo.roles = roles;
-  await roomInfo.save();
+  return roles;
+}
 
-  // Create an eventEmitter object
-  const eventEmitter = new events.EventEmitter();
-  // this event is global?
-  eventEmitter.emit('ROOM_TURN_DAY_START', roomInfo.toObject());
+function createInitialStatus(roomInfo) {
+  const playerStatus = {};
+  roomInfo.players.forEach((player) => {
+    playerStatus[player.toString()] = 'ALIVE';
+  });
+  return playerStatus;
+}
 
-  let isTimeOut = false;
-  const timeOutId = setTimeout(() => {
-    //Trigger socket emit to all players that no one is killed
-    isTimeOut = true;
-  }, 15000);
-});
-
-//POST players roles do vote
-//Create a new schema: turn, phase, trigger, targeted
-router.post('/:id/vote', async (req, res) => {
-  const roomInfo = await Room.findById(req.params.id).select(['+roles']);
-  let currentPhase = roomInfo.phase;
-  if (currentPhase === 'NIGHT' && roomInfo.roles[req.user.id] === 'villager') {
-    return res.status(400).json({ msg: 'bo lao vcl' });
-  }
-
-  if (roomInfo.playerStatus[req.user.id] === 'DEAD') {
-    return res.status(400).json({ msg: 'may chet roi`' });
-  }
-
+async function handleVote(roomInfo, req, res) {
   const infoVote = {
     room: roomInfo.id,
-    phase: currentPhase,
+    phase: roomInfo.phase,
     turn: roomInfo.turn,
     trigger: req.user.id,
   };
@@ -77,7 +132,7 @@ router.post('/:id/vote', async (req, res) => {
   const alreadyVoted = await Vote.findOne(infoVote);
 
   if (alreadyVoted) {
-    return res.status(400).json({ msg: 'may vote roi`' });
+    return res.status(400).send('may vote roi`');
   }
 
   if (payloadVote.type === 'SKIP') {
@@ -94,7 +149,7 @@ router.post('/:id/vote', async (req, res) => {
     payloadVote.targeted.id === req.user.id ||
     roomInfo.playerStatus[payloadVote.targeted.id] === 'DEAD'
   ) {
-    return res.status(400).json({ msg: 'target vote sai roi`' });
+    return res.status(400).send('target vote sai roi`');
   }
 
   // action now is KILL
@@ -103,20 +158,7 @@ router.post('/:id/vote', async (req, res) => {
     targeted: payloadVote.targeted,
   });
   const newVoteModel = await new Vote(newVote).save();
-  // roomInfo.playerStatus[newVote.targeted.id] = 'DEAD';
-  // await roomInfo.save();
   return res.json(newVoteModel);
-});
-
-//Function onServerVote
-function onServerVote() {
-  if (isTimeOut) {
-    //inform user is not allowed
-    return;
-  }
-  clearTimeout(timeOutId);
-  //do some logic voting
-  //emit socket to all players as this player is voted
 }
 
 module.exports = router;
