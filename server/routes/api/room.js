@@ -32,7 +32,6 @@ router.post('/', auth, async (req, res) => {
       description: description,
       players: lobbyParticipants,
       maxParticipants: maxParticipants,
-      status: 'open',
     });
 
     // Created room record on MongoDB
@@ -47,7 +46,7 @@ router.post('/', auth, async (req, res) => {
     return res.json(populatedRoom);
   } catch (err) {
     console.log(err);
-    return res.status(500).send('Server Error');
+    return res.status(500).send('Server error');
   }
 });
 
@@ -55,12 +54,12 @@ router.post('/', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
   try {
     const stayedRoom = await Room.find({
-      status: 'open',
+      status: 'OPEN',
       players: { $in: req.user.id },
     }).populate('owner', ['name', 'avatar']);
 
     if (stayedRoom.length === 0) {
-      const rooms = await Room.find({ status: 'open' })
+      const rooms = await Room.find({ status: 'OPEN' })
         .sort({ date: -1 })
         .populate('owner', ['name', 'avatar']);
       return res.json(rooms);
@@ -69,7 +68,7 @@ router.get('/', auth, async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).json('Server Error');
+    return res.status(500).send('Server error');
   }
 });
 
@@ -77,7 +76,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const stayedRoom = await Room.find({
-      status: 'open',
+      status: 'OPEN',
       players: { $in: req.user.id },
     }).select(['+roles']);
 
@@ -105,7 +104,7 @@ router.get('/:id', auth, async (req, res) => {
     return res.json(returnedRoom);
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ msg: 'Server Error' });
+    return res.status(500).send('Server error');
   }
 });
 
@@ -121,7 +120,7 @@ router.put('/join/:id', auth, async (req, res) => {
     const user = await User.findById(req.user.id).select(['-password']);
 
     const previousRoom = await Room.find({
-      status: 'open',
+      status: 'OPEN',
       players: { $in: user._id },
       _id: { $ne: room._id },
     });
@@ -129,6 +128,9 @@ router.put('/join/:id', auth, async (req, res) => {
     if (previousRoom.length === 0) {
       // If user joined this current room already. then not increase
       // user in this room.
+      if (room.players.length === room.maxParticipants) {
+        return res.status(400).json({ msg: 'Room is full' });
+      }
       if (!room.players.find((u) => u.id === user.id)) {
         room.players.push(user);
         await room.save();
@@ -139,7 +141,7 @@ router.put('/join/:id', auth, async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ msg: 'Server Error' });
+    return res.status(500).send('Server error');
   }
 });
 
@@ -152,7 +154,7 @@ router.put('/leave/:id', auth, async (req, res) => {
     const userIndexInRoom = room.players.indexOf(user.id);
 
     if (userIndexInRoom === -1) {
-      return res.json({ msg: 'Player hasnt joined this room' });
+      return res.status(400).json({ msg: 'Player hasnt joined this room' });
     }
 
     // remove this user from list player.
@@ -172,7 +174,7 @@ router.put('/leave/:id', auth, async (req, res) => {
     return res.json({ msg: messageReturn });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ msg: 'Server error' });
+    return res.status(500).send('Server error');
   }
 });
 

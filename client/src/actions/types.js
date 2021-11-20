@@ -27,3 +27,5 @@ export const LOBBY_ERROR = 'LOBBY_ERROR';
 export const LOBBY_DISBANDED = 'LOBBY_DISBANDED';
 export const JOIN_LOBBY = 'JOIN_LOBBY';
 export const LEAVE_LOBBY = 'LEAVE_LOBBY';
+export const GET_GAME_INFO = 'GET_GAME_INFO';
+export const GAME_ERROR = 'GAME_ERROR';

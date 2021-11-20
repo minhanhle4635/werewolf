@@ -9,46 +9,23 @@ const ENDPOINT = 'http://localhost:5000';
 
 let socket = io(ENDPOINT);
 
-const RoomItem = ({ lobby: { lobby, loading }, leaveLobby }) => {
+const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
   const { _id, players, lobbyName, maxParticipants, description } = lobby;
 
-  // useEffect(() => {
-  //   socket.emit(
-  //     'JOIN_ROOM',
-  //     { roomInformation: lobby, userJoined: user._id },
-  //     (error) => {
-  //       console.log(error);
-  //     }
-  //   );
-  // }, []);
+  // localStorage.setItem('current_lobby', lobby);
 
-  // function componentDidMount() {
-  //   if (lobby.players.find((u) => u._id === user._id)) {
-  //     socket.emit(
-  //       'RE_JOIN_ROOM',
-  //       { roomInformation: lobby, userJoined: user._id },
-  //       (error) => {
-  //         console.log(error);
-  //       }
-  //     );
-  //   } else {
-  //     socket.emit(
-  //       'JOIN_ROOM',
-  //       { roomInformation: lobby, userJoined: user._id },
-  //       (error) => {
-  //         console.log(error);
-  //       }
-  //     );
-  //   }
+  // const currentLobby = JSON.parse(localStorage.getItem('current_lobby'));
 
-  //   socket.on('USER_JOINED', (data) => {
-  //     console.log('USER_JOINED', data);
-  //   });
-
-  //   socket.on('USER_RE_JOINED', (data) => {
-  //     console.log('USER_RE_JOINED', data);
-  //   });
-  // }
+  useEffect(() => {
+    console.count('useEffectCounted');
+    socket.emit(
+      'JOIN_ROOM',
+      { roomInformation: lobby, userJoined: auth.user._id },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }, []);
 
   return (
     <Fragment>
@@ -73,7 +50,6 @@ const RoomItem = ({ lobby: { lobby, loading }, leaveLobby }) => {
         </div>
       </div>
       <div>
-        {players.length}
         <Link to={`/game/${_id}`}>
           {players.length > 2 ? (
             <button className="btn btn-danger" disabled>

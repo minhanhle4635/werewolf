@@ -15,13 +15,6 @@ const Room = ({ getLobby, lobby: { lobby, loading }, auth, match }) => {
 
   useEffect(() => {
     getLobby(match.params.id);
-    socket.emit(
-      'JOIN_ROOM',
-      { roomInformation: lobby, userJoined: user._id },
-      (error) => {
-        console.log(error);
-      }
-    );
   }, []);
 
   return loading || lobby === null ? <Spinner /> : <RoomItem />;
