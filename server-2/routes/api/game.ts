@@ -1,25 +1,83 @@
 import express, { Request, Response } from "express";
-import events from "events";
 import { Room } from "../../models/Room";
 import { Vote } from "../../models/Vote";
-import { PLAYER_STATUS, ROLE, TURN_PHASE } from "../../interface/Room.interface";
+import { IRoomDocument, PLAYER_STATUS, ROLE, ROOM_STATUS, TURN_PHASE } from "../../interface/Room.interface";
+import { GameEvent } from "../../event/game.event";
 
 const router = express.Router();
 
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:roomId', async (req: Request, res: Response) => {
 	//Assign role
 	const roomInfo = await Room.findById(req.params.roomId);
-	if (!roomInfo) {
+	if (!roomInfo || roomInfo.status === ROOM_STATUS.CLOSED) {
 		return res.status(404).json({msg: 'cannot find the room'});
 	}
-	const voteInfo = await Vote.remove({
+	await Vote.deleteMany({
 		roomId: roomInfo.id,
 	});
+	const initPlayerStatus = createInitialStatus(roomInfo);
+	const initRoles = createInitialRoles(roomInfo);
+	if (!initRoles) {
+		return res.status(400).json({msg: "Wrong"})
+	}
+	roomInfo.roles = initRoles;
+	roomInfo.playerStatus = initPlayerStatus;
+	roomInfo.status = ROOM_STATUS.PLAYING;
+	await roomInfo.save();
+	const returnObject = roomInfo.toObject();
+	// this event is global?
+	GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', returnObject);
+	// @ts-ignore // silent this error cause we know what we are doing
+	returnObject.roles = returnObject.roles[req.user.id];
+	return res.json(returnObject);
+});
 
-	const remainRoles: ROLE[] = [
-		// TODO: add roles here.
-	]
+//POST players roles do vote
+router.post('/:id/vote', async (req: Request, res: Response) => {
+	const roomInfo = await Room.findById(req.params.id).select(['+roles']);
+	if (!roomInfo) {
+		return res.status(404).send('room khong ton tai`');
+	}
 
+	if (roomInfo.playerStatus[req.user.id] === 'DEAD') {
+		return res.status(400).send('may chet roi`');
+	}
+
+	if (roomInfo.roles[req.user.id] === ROLE.VILLAGER) {
+		if (roomInfo.phase === TURN_PHASE.NIGHT) {
+			return res.status(400).json('bo lao vcl');
+		}
+	}
+
+	return handleVote(roomInfo, req, res);
+});
+
+export = router;
+
+function rollDice(remainRoles: ROLE[]) {
+	if (remainRoles.length === 0) {
+		return null;
+	}
+
+	const randomIndex = Math.floor(Math.random() * remainRoles.length);
+	const randomRole = remainRoles[randomIndex];
+	remainRoles.splice(randomIndex, 1);
+	return randomRole;
+}
+
+function generateRolesOnNumberOfPlayer(amount: number) {
+	const initialArr = [ROLE.WOLF, ROLE.VILLAGER];
+	if (amount <= 2) {
+		return initialArr;
+	}
+	for (let i = 0; i < amount - 2; i++) {
+		initialArr.push(ROLE.VILLAGER);
+	}
+	return initialArr;
+}
+
+function createInitialRoles(roomInfo: IRoomDocument) {
+	const remainRoles: ROLE[] = generateRolesOnNumberOfPlayer(roomInfo.players.length);
 	const roles: {
 		[userId: string]: ROLE
 	} = {};
@@ -29,59 +87,29 @@ router.get('/:id', async (req: Request, res: Response) => {
 	 * P3: id=3
 	 */
 	roomInfo.players.forEach((player) => {
-		/**
-		 * x = id
-		 * P[x] <-- rollDice (random role)
-		 * roles[x] = rollDice
-		 * eg:
-		 *
-		 * {
-		 *    1: 'villager'
-		 *    2: 'woft',
-		 *    3: 'villager'
-		 * }
-		 *
-		 * eg: when access
-		 *
-		 * roles[user.id] === "villager"
-		 */
-		roles[player.id] = rollDice(remainRoles);
+		const roleToAssign = rollDice(remainRoles);
+		if (!roleToAssign) {
+			return null;
+		}
+		roles[player.toString()] = roleToAssign;
 	});
-	roomInfo.roles = roles;
-	await roomInfo.save();
+	return roles;
+}
 
-	// Create an eventEmitter object
-	const eventEmitter = new events.EventEmitter();
-	// this event is global?
-	eventEmitter.emit('ROOM_TURN_DAY_START', roomInfo.toObject());
+function createInitialStatus(roomInfo: IRoomDocument) {
+	const playerStatus: {
+		[userId: string]: PLAYER_STATUS
+	} = {};
+	roomInfo.players.forEach((player) => {
+		playerStatus[player.toString()] = PLAYER_STATUS.ALIVE;
+	})
+	return playerStatus;
+}
 
-	let isTimeOut = false;
-	const timeOutId = setTimeout(() => {
-		//Trigger socket emit to all players that no one is killed
-		isTimeOut = true;
-	}, 15000);
-});
-
-//POST players roles do vote
-router.post('/:id/vote', async (req: Request, res: Response) => {
-	const roomInfo = await Room.findById(req.params.id).select(['+roles']);
-
-	if (!roomInfo) {
-		return res.status(404).json({msg: 'cannot find the room'})
-	}
-
-	let currentPhase = roomInfo.phase;
-	if (currentPhase === TURN_PHASE.NIGHT && roomInfo.roles[req.user.id] === ROLE.VILLAGER) {
-		return res.status(400).json({msg: 'bo lao vcl'});
-	}
-
-	if (roomInfo.playerStatus[req.user.id] === PLAYER_STATUS.DEAD) {
-		return res.status(400).json({msg: 'may chet roi`'});
-	}
-
+async function handleVote(roomInfo: IRoomDocument, req: Request, res: Response) {
 	const infoVote = {
 		room: roomInfo.id,
-		phase: currentPhase,
+		phase: roomInfo.phase,
 		turn: roomInfo.turn,
 		trigger: req.user.id,
 	};
@@ -90,7 +118,7 @@ router.post('/:id/vote', async (req: Request, res: Response) => {
 	const alreadyVoted = await Vote.findOne(infoVote);
 
 	if (alreadyVoted) {
-		return res.status(400).json({msg: 'may vote roi`'});
+		return res.status(400).send('may vote roi`');
 	}
 
 	if (payloadVote.type === 'SKIP') {
@@ -107,7 +135,7 @@ router.post('/:id/vote', async (req: Request, res: Response) => {
 		payloadVote.targeted.id === req.user.id ||
 		roomInfo.playerStatus[payloadVote.targeted.id] === 'DEAD'
 	) {
-		return res.status(400).json({msg: 'target vote sai roi`'});
+		return res.status(400).send('target vote sai roi`');
 	}
 
 	// action now is KILL
@@ -116,14 +144,5 @@ router.post('/:id/vote', async (req: Request, res: Response) => {
 		targeted: payloadVote.targeted,
 	});
 	const newVoteModel = await new Vote(newVote).save();
-	// roomInfo.playerStatus[newVote.targeted.id] = 'DEAD';
-	// await roomInfo.save();
 	return res.json(newVoteModel);
-});
-
-export = router;
-
-function rollDice(remainRoles: ROLE[]): ROLE {
-	throw new Error("Function not implemented.");
 }
-

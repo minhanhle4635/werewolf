@@ -36,6 +36,7 @@ export enum ROOM_STATUS {
 export enum ROLE {
 	VILLAGER = 'VILLAGER',
 	WOLF = 'WOLF',
+	PROPHET = 'PROPHET',
 }
 
 export enum PLAYER_STATUS {
