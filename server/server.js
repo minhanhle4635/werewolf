@@ -76,6 +76,30 @@ app.use('/api/game', require('./routes/api/game'));
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server started on port ${PORT} `));
 
+GameEvent.eventEmitter.addListener('ROOM_TURN_DAY_START', async function (roomInfo) {
+  if (roomInfo.status === 'CLOSED') {
+    return;
+  }
+  setTimeout(async () => {
+    // check the vote, update the room info, etc.
+    const roomDB = await Room.findById(roomInfo.id).populate(['+players']);
+    if (!roomDB || roomDB.status === 'CLOSED') {
+      return;
+    }
+    const voteOnTurnPhase = await Vote.find({
+      room: roomDB.id,
+      turn: roomDB.turn,
+      phase: roomDB.phase,
+    });
+    if (roomDB.phase === 'NIGHT') {
+      await countingNightVotes(roomDB, voteOnTurnPhase);
+    }
+    else {
+      await countingDayVotes(roomDB, voteOnTurnPhase);
+    }
+  }, 30000);
+});
+
 async function countingDayVotes(room, voteOnTurnPhase) {
   const playerAlive = room.players.filter(playerId => room.playerStatus[playerId.toString()] === 'ALIVE');
   const { votes, skip } = await countVote(room, voteOnTurnPhase, playerAlive);
