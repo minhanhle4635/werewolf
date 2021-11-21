@@ -8,7 +8,7 @@ const auth = require('../../middleware/auth');
 /**
  * Start game
  */
-router.get('/:roomId', auth, async (req, res) => {
+router.post('/:roomId/start', auth, async (req, res) => {
   //Assign role
   const roomInfo = await Room.findById(req.params.roomId)
     .select(['+roles'])
@@ -34,8 +34,8 @@ router.get('/:roomId', auth, async (req, res) => {
 
 //POST players roles do vote
 //Create a new schema: turn, phase, trigger, targeted
-router.post('/:id/vote', auth, async (req, res) => {
-  const roomInfo = await Room.findById(req.params.id).select(['+roles']);
+router.post('/:roomId/vote', auth, async (req, res) => {
+  const roomInfo = await Room.findById(req.params.roomId).select(['+roles']);
 
   if (!roomInfo) {
     return res.status(404).send('room khong ton tai`');

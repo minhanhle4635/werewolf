@@ -1,15 +1,23 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { leaveLobby } from '../../actions/lobby';
+import { getLobbies, getLobby, leaveLobby } from '../../actions/lobby';
 import { io } from 'socket.io-client';
+import { loadUser } from '../../actions/auth';
 
 const ENDPOINT = 'http://localhost:5000';
 
 let socket = io(ENDPOINT);
 
-const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
+const RoomItem = ({
+  lobby: { lobby, loading },
+  auth,
+  getLobby,
+  loadUser,
+  leaveLobby,
+  getLobbies,
+}) => {
   const { _id, players, lobbyName, maxParticipants, description } = lobby;
 
   // localStorage.setItem('current_lobby', JSON.stringify(lobby));
@@ -17,7 +25,6 @@ const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
   // const currentLobby = JSON.parse(localStorage.getItem('current_lobby'));
 
   useEffect(() => {
-    console.count('useEffectCounted');
     socket.emit(
       'JOIN_ROOM',
       { roomInformation: lobby, userJoined: auth.user._id },
@@ -25,7 +32,24 @@ const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
         console.log(error);
       }
     );
-  }, []);
+
+    socket.on('USER_JOINED', (joinedUserId) => {
+      console.log(joinedUserId);
+      if (auth.user._id === joinedUserId) {
+        return;
+      }
+      // update lobby information
+      getLobby(lobby._id);
+    });
+
+    socket.on('USER_LEFT', (payload) => {
+      getLobby(lobby._id);
+    });
+
+    socket.on('DISBAND_ROOM', () => {
+      window.location.href = '/lobbies';
+    });
+  }, [getLobby, getLobbies, lobby._id]);
 
   return (
     <Fragment>
@@ -51,12 +75,18 @@ const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
       </div>
       <div>
         <Link to={`/game/${_id}`}>
-          {players.length > 3 ? (
-            <button className="btn btn-danger" disabled>
-              Waiting for more players
-            </button>
+          {auth.user._id === lobby.owner ? (
+            players.length > 3 ? (
+              <button className="btn btn-danger" disabled>
+                Waiting for more players
+              </button>
+            ) : (
+              <button className="btn btn-light">Start Game</button>
+            )
           ) : (
-            <button className="btn btn-light">Start Game</button>
+            <button className="btn btn-danger" disabled>
+              Waiting for more owner to start
+            </button>
           )}
         </Link>
       </div>
@@ -73,6 +103,8 @@ RoomItem.propTypes = {
   lobby: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
   leaveLobby: PropTypes.func.isRequired,
+  getLobby: PropTypes.func.isRequired,
+  getLobbies: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -80,4 +112,9 @@ const mapStateToProps = (state) => ({
   auth: state.auth,
 });
 
-export default connect(mapStateToProps, { leaveLobby })(RoomItem);
+export default connect(mapStateToProps, {
+  getLobbies,
+  leaveLobby,
+  getLobby,
+  loadUser,
+})(RoomItem);

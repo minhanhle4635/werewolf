@@ -50,7 +50,7 @@ export default function (state = initialState, action) {
     case LEAVE_LOBBY:
       return {
         ...state,
-        lobbies: [payload],
+        error: payload,
         loading: false,
       };
     case LOBBY_DISBANDED:

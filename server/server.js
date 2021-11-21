@@ -19,7 +19,7 @@ const Vote = require('./models/Vote');
 const server = http.createServer(app);
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 
-// Socket is the fuckin client
+// Socket is the client
 // socket will emit event, which is why we have to listen it
 io.on('connection', (socket) => {
   /**
@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
     if (roomInformation.owner === userLeave._id) {
       io.to(roomInformation._id).emit('DISBAND_ROOM', null);
     } else {
-      socket.to(roomInformation._id).emit('USER_LEAVE', userLeave);
+      io.to(roomInformation._id).emit('USER_LEFT', userLeave);
     }
     socket.leave(roomInformation._id);
   });

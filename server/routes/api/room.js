@@ -78,7 +78,9 @@ router.get('/:id', auth, async (req, res) => {
     const stayedRoom = await Room.find({
       status: 'OPEN',
       players: { $in: req.user.id },
-    }).select(['+roles']);
+    })
+      .select(['+roles'])
+      .populate('players', ['name', 'avatar']);
 
     let returnedRoom;
 
@@ -86,6 +88,10 @@ router.get('/:id', auth, async (req, res) => {
       const givenRoom = await Room.findById(req.params.id)
         .populate('players', ['name', 'avatar'])
         .select(['+roles']);
+
+      if (!givenRoom) {
+        return res.status(404).json({ msg: 'room not exist' });
+      }
       returnedRoom = givenRoom;
     } else {
       returnedRoom = stayedRoom[0];
@@ -114,7 +120,7 @@ router.get('/:id', auth, async (req, res) => {
  * 2. Server updated the record, join the socket room, then emit to the room for all the member (a new user joined)
  * 3. User on client navigate to page room/:id
  */
-router.put('/join/:id', auth, async (req, res) => {
+router.put('/:id/join', auth, async (req, res) => {
   try {
     const room = await Room.findById(req.params.id).populate(['players']);
     const user = await User.findById(req.user.id).select(['-password']);
@@ -146,7 +152,7 @@ router.put('/join/:id', auth, async (req, res) => {
 });
 
 //PUT Leave room
-router.put('/leave/:id', auth, async (req, res) => {
+router.put('/:id/leave', auth, async (req, res) => {
   try {
     const room = await Room.findById(req.params.id);
     const user = await User.findById(req.user.id).select('-password');
@@ -161,7 +167,7 @@ router.put('/leave/:id', auth, async (req, res) => {
     room.players.splice(userIndexInRoom, 1);
     let messageReturn = 'You have left the room.';
 
-    if (room.owner === user._id) {
+    if (room.owner.toString() === user._id.toString()) {
       // this user is the owner, we need to discard this room.
       messageReturn = 'This room is now disbanded.';
       // save to DB
@@ -171,7 +177,7 @@ router.put('/leave/:id', auth, async (req, res) => {
       await room.save();
     }
 
-    return res.json({ msg: messageReturn });
+    return res.json({ msg: messageReturn, data: room, user: user });
   } catch (err) {
     console.log(err);
     return res.status(500).send('Server error');

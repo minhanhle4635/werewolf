@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import { setAlert } from './alert';
+import { loadUser } from './auth';
 import {
   LOBBY_CREATED,
   GET_LOBBIES,
@@ -10,6 +11,8 @@ import {
   LEAVE_LOBBY,
   JOIN_LOBBY,
 } from './types';
+
+let socket = io('http://localhost:5000');
 
 //Get All Lobbies
 export const getLobbies = () => async (dispatch) => {
@@ -62,6 +65,8 @@ export const getLobby = (id) => async (dispatch) => {
       type: GET_LOBBY,
       payload: res.data,
     });
+
+    dispatch(loadUser());
   } catch (err) {
     dispatch({
       type: LOBBY_ERROR,
@@ -93,7 +98,7 @@ export const disbandLobby = (id) => async (dispatch) => {
 export const joinLobby = (id) => async (dispatch) => {
   try {
     // room information
-    const res = await axios.put(`/api/room/join/${id}`);
+    const res = await axios.put(`/api/room/${id}/join`);
 
     dispatch({
       type: JOIN_LOBBY,
@@ -104,9 +109,12 @@ export const joinLobby = (id) => async (dispatch) => {
       type: GET_LOBBY,
       payload: res.data,
     });
-
+    // THIS IS A FUCKING HACK
+    // TODO: better handling this shit: mini-reload page
+    window.location.href = `/room/${id}`;
     dispatch(setAlert('Lobby Joined', 'success'));
   } catch (err) {
+    debugger;
     dispatch({
       type: LOBBY_ERROR,
       payload: { msg: err.response.statusText, status: err.response.status },
@@ -117,11 +125,18 @@ export const joinLobby = (id) => async (dispatch) => {
 //Leave lobby
 export const leaveLobby = (id) => async (dispatch) => {
   try {
-    const res = await axios.put(`/api/room/leave/${id}`);
+    const res = await axios.put(`/api/room/${id}/leave`);
 
     dispatch({
       type: LEAVE_LOBBY,
       payload: res.data,
+    });
+
+    dispatch(getLobbies());
+
+    socket.emit('LEAVE_ROOM', {
+      roomInformation: res.data.data,
+      userLeave: res.data.user,
     });
 
     dispatch(setAlert('Leave lobby successfully', 'success'));

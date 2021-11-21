@@ -4,7 +4,7 @@ import { GET_GAME_INFO, GAME_ERROR, VOTED_SUCCESS } from './types';
 
 export const getGameInfo = (id) => async (dispatch) => {
   try {
-    const res = await axios.get(`/api/game/${id}`);
+    const res = await axios.post(`/api/game/${id}/start`);
 
     dispatch({
       type: GET_GAME_INFO,

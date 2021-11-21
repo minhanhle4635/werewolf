@@ -39,13 +39,13 @@ const LobbyItem = ({
           </p>
         </div>
         <div>
-          <Link
-            to={`/room/${_id}`}
+          <button
+            // to={`/room/${_id}`}
             className="btn btn-primary"
             onClick={(e) => joinLobby(_id)}
           >
             Join Lobby
-          </Link>
+          </button>
         </div>
       </div>
     </Fragment>
