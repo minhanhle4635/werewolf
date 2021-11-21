@@ -29,3 +29,4 @@ export const JOIN_LOBBY = 'JOIN_LOBBY';
 export const LEAVE_LOBBY = 'LEAVE_LOBBY';
 export const GET_GAME_INFO = 'GET_GAME_INFO';
 export const GAME_ERROR = 'GAME_ERROR';
+export const VOTED_SUCCESS = 'VOTED_SUCCESS';

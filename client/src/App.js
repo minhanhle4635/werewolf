@@ -17,6 +17,7 @@ import store from './store';
 import { loadUser } from './actions/auth';
 import PrivateRoute from './components/routing/PrivateRoute';
 import homepage from './components/index/homepage';
+import Game from './components/game/Game';
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -43,6 +44,7 @@ const App = () => {
               <PrivateRoute exact path="/lobbies" component={Lobbies} />
               <PrivateRoute exact path="/create_room" component={LobbyForm} />
               <PrivateRoute exact path="/room/:id" component={Room} />
+              <PrivateRoute exact path="/game/:id" component={Game} />
             </Switch>
           </section>
         </Fragment>

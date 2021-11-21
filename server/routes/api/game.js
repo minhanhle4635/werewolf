@@ -10,14 +10,14 @@ const auth = require('../../middleware/auth');
  */
 router.get('/:roomId', auth, async (req, res) => {
   //Assign role
-  const roomInfo = await Room.findById(req.params.roomId);
+  const roomInfo = await Room.findById(req.params.roomId)
+    .select(['+roles'])
+    .populate('players', ['name', 'avatar']);
 
   if (!roomInfo || roomInfo.status === 'CLOSED') {
     return res.status(400).json({ msg: 'Wrong' });
   }
-  await Vote.deleteMany({
-    roomId: roomInfo.id,
-  });
+
   const playerStatus = createInitialStatus(roomInfo);
   const initRoles = createInitialRoles(roomInfo);
   roomInfo.roles = initRoles;
@@ -34,7 +34,7 @@ router.get('/:roomId', auth, async (req, res) => {
 
 //POST players roles do vote
 //Create a new schema: turn, phase, trigger, targeted
-router.post('/:id/vote', async (req, res) => {
+router.post('/:id/vote', auth, async (req, res) => {
   const roomInfo = await Room.findById(req.params.id).select(['+roles']);
 
   if (!roomInfo) {
@@ -107,7 +107,7 @@ function createInitialRoles(roomInfo) {
     if (!roleToAssign) {
       return null;
     }
-    roles[player.toString()] = roleToAssign;
+    roles[player._id.toString()] = roleToAssign;
   });
   return roles;
 }
@@ -115,7 +115,7 @@ function createInitialRoles(roomInfo) {
 function createInitialStatus(roomInfo) {
   const playerStatus = {};
   roomInfo.players.forEach((player) => {
-    playerStatus[player.toString()] = 'ALIVE';
+    playerStatus[player._id.toString()] = 'ALIVE';
   });
   return playerStatus;
 }
@@ -141,13 +141,14 @@ async function handleVote(roomInfo, req, res) {
       type: payloadVote.type,
     });
 
-    const newVoteModel = await new Vote(newVote).save();
+    const newVoteModel = new Vote(newVote);
+    await newVoteModel.save();
     return res.json(newVoteModel);
   }
 
   if (
-    payloadVote.targeted.id === req.user.id ||
-    roomInfo.playerStatus[payloadVote.targeted.id] === 'DEAD'
+    payloadVote.targeted === req.user.id ||
+    roomInfo.playerStatus[payloadVote.targeted] === 'DEAD'
   ) {
     return res.status(400).send('target vote sai roi`');
   }
@@ -157,7 +158,8 @@ async function handleVote(roomInfo, req, res) {
     type: payloadVote.type,
     targeted: payloadVote.targeted,
   });
-  const newVoteModel = await new Vote(newVote).save();
+  const newVoteModel = new Vote(newVote);
+  await newVoteModel.save();
   return res.json(newVoteModel);
 }
 

@@ -12,7 +12,7 @@ let socket = io(ENDPOINT);
 const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
   const { _id, players, lobbyName, maxParticipants, description } = lobby;
 
-  // localStorage.setItem('current_lobby', lobby);
+  // localStorage.setItem('current_lobby', JSON.stringify(lobby));
 
   // const currentLobby = JSON.parse(localStorage.getItem('current_lobby'));
 
@@ -51,7 +51,7 @@ const RoomItem = ({ lobby: { lobby, loading }, auth, leaveLobby }) => {
       </div>
       <div>
         <Link to={`/game/${_id}`}>
-          {players.length > 2 ? (
+          {players.length > 3 ? (
             <button className="btn btn-danger" disabled>
               Waiting for more players
             </button>
