@@ -76,68 +76,110 @@ app.use('/api/game', require('./routes/api/game'));
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server started on port ${PORT} `));
 
-GameEvent.eventEmitter.addListener(
-  'ROOM_TURN_DAY_START',
-  async function (roomInfo) {
-    console.log('Event emitter triggered');
-    if (roomInfo.status === 'CLOSED') {
-      return;
-    }
-    setTimeout(async () => {
-      // check the vote, update the room info, etc.
-      const roomDB = await Room.findById(roomInfo.id);
-
-      if (!roomDB || roomDB.status === 'CLOSED') {
-        return;
-      }
-
-      const voteOnTurnPhase = await Vote.find({
-        room: roomDB.id,
-        turn: roomDB.turn,
-        phase: roomDB.phase,
-      });
-
-      const votedFor = {
-        // [targetId]: [amount of vote]
-      };
-      let skippedVote = 0;
-      voteOnTurnPhase.forEach((vote) => {
-        if (vote.type === 'SKIP') {
-          skippedVote++;
-        } else {
-          if (votedFor[vote.targetted] !== undefined) {
-            votedFor[vote.targetted] = votedFor[vote.targetted] + 1;
-          } else {
-            votedFor[vote.targetted] = 1;
-          }
-        }
-      });
-      /**
-       * User with the highest vote.
-       */
-      const maxedID = Object.keys(votedFor).reduce((a, b) =>
-        votedFor[a] > votedFor[b] ? a : b
-      );
-      if (roomDB.phase === 'DAY') {
-        if (votedFor[maxedID] > skippedVote) {
-          // kill this bitch
-          roomDB.playerStatus[maxedID] = 'DEAD';
-        }
-        roomDB.phase = 'NIGHT';
-      } else {
-        if (votedFor[maxedID] > skippedVote) {
-          if (roomDB.roles[maxedID] !== 'WOLF') {
-            // kill this bitch
-            roomDB.playerStatus[maxedID] = 'DEAD';
-          }
-        }
-        roomDB.turn = roomDB.turn + 1;
-        roomDB.phase = 'DAY';
-      }
-      await roomDB.save();
-      GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', roomDB.toObject());
-      // emit the voting result
-      io.to(roomDB._id).emit('VOTE_COUNTED', roomDB);
-    }, 30000);
+async function countingDayVotes(room, voteOnTurnPhase) {
+  const playerAlive = room.players.filter(playerId => room.playerStatus[playerId.toString()] === 'ALIVE');
+  const { votes, skip } = await countVote(room, voteOnTurnPhase, playerAlive);
+  /**
+   * User with the highest vote.
+   */
+  const maxedID = Object.keys(votes).reduce((a, b) => votes[a] > votes[b] ? a : b);
+  if (votes[maxedID] > skip) {
+    // kill this bitch
+    room.playerStatus[maxedID] = 'DEAD';
   }
-);
+  room.phase = 'NIGHT';
+  await room.save();
+  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
+  // emit the voting result
+  io.to(room.id).emit('VOTE_COUNTED', room);
+}
+async function countingNightVotes(room, voteOnTurnPhase) {
+  const wolfAlive = room.players.filter(playerId => room.playerStatus[playerId.toString()] === 'ALIVE' &&
+    room.roles[playerId.toString()] === 'WOLF');
+  const { votes, skip } = await countVote(room, voteOnTurnPhase, wolfAlive);
+  /**
+   * User with the highest vote.
+   */
+  const maxedID = Object.keys(votes).reduce((a, b) => votes[a] > votes[b] ? a : b);
+  if (room.roles[maxedID] !== 'WOLF') {
+    if (votes[maxedID] > skip) {
+      // kill this bitch
+      // only when the vote is correctly at the villager and is more than skipped vote.
+      room.playerStatus[maxedID] = 'DEAD';
+    }
+  }
+  room.turn = room.turn + 1;
+  room.phase = 'DAY';
+  await room.save();
+  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
+  // emit the voting result
+  io.to(room.id).emit('VOTE_COUNTED', room);
+}
+async function countVote(room, voteOnTurnPhase, playerAlive) {
+  if (voteOnTurnPhase.length < playerAlive.length) {
+    await addMoreVote(room, voteOnTurnPhase, playerAlive);
+  }
+  else if (voteOnTurnPhase.length > playerAlive.length) {
+    voteOnTurnPhase = await reduceLessVote(room, voteOnTurnPhase, playerAlive);
+  }
+  const votedFor = {};
+  let skippedVote = 0;
+  voteOnTurnPhase.forEach((vote) => {
+    if (vote.type === 'SKIP') {
+      skippedVote++;
+    }
+    else {
+      const voteTargetId = vote.targeted.toString();
+      if (votedFor[voteTargetId] !== undefined) {
+        votedFor[voteTargetId] = votedFor[voteTargetId] + 1;
+      }
+      else {
+        votedFor[voteTargetId] = 1;
+      }
+    }
+  });
+  return {
+    votes: votedFor,
+    skip: skippedVote
+  };
+}
+/**
+ * Ensure the vote is correctly from the alive player, we add more temporary votes (for alive players but did not vote)
+ * @param roomInfo
+ * @param existedVote
+ * @param ensureVoteForThese
+ */
+async function addMoreVote(roomInfo, existedVote, ensureVoteForThese) {
+  const arrAdd = [];
+  ensureVoteForThese.forEach(u => {
+    const foundVote = existedVote.find(v => v.trigger.toString() === u._id.toString());
+    if (!foundVote) {
+      arrAdd.push(new Vote({
+        room: roomInfo.id,
+        trigger: u.id,
+        phase: roomInfo.phase,
+        turn: roomInfo.turn,
+        type: 'SKIP'
+      }));
+    }
+  });
+  // if want to save these temp votes.
+  // await Vote.insertMany(arrAdd);
+  existedVote.push(...arrAdd);
+}
+/**
+ * Ensure the vote is correctly from the alive player, we reduce the vote (only get from the alive player)
+ * @param roomInfo
+ * @param existedVote
+ * @param ensureVoteForThese
+ */
+async function reduceLessVote(roomInfo, existedVote, ensureVoteForThese) {
+  const arrReduce = [];
+  ensureVoteForThese.forEach(u => {
+    const foundVote = existedVote.find(v => v.trigger.toString() === u._id.toString());
+    if (foundVote) {
+      arrReduce.push(foundVote);
+    }
+  });
+  return arrReduce;
+}
