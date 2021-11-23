@@ -1,51 +1,15 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { getGameInfo, submitVote } from '../../actions/game';
+import { getGameInformation, submitVote } from '../../actions/game';
 
-const GameItem = ({ submitVote }) => {
-  const gameStateStatic = {
-    _id: '619a16977b117e747bf8694c',
-    players: [
-      {
-        _id: '6195806cc70f178f96b03b83',
-        name: 'MAL',
-        avatar:
-          '//www.gravatar.com/avatar/43b43a8ada1de62cfe086d89d883e38f?s=200&r=pg&d=mm',
-      },
-      {
-        _id: '619a16707b117e747bf86941',
-        name: 'guest2',
-        avatar:
-          '//www.gravatar.com/avatar/21644c1915ce7fe92823d4f3ac3ab75e?s=200&r=pg&d=mm',
-      },
-      {
-        _id: '61968ba069cb1a75b6832c2e',
-        name: 'ABC',
-        avatar:
-          '//www.gravatar.com/avatar/caa23f75efae3886bdbd6498acc3fb91?s=200&r=pg&d=mm',
-      },
-    ],
-    phase: 'DAY',
-    turn: 1,
-    lobbyName: 'Lê Minh Anh',
-    owner: '6195806cc70f178f96b03b83',
-    date: '2021-11-21T09:44:59.275Z',
-    description: '123123123',
-    maxParticipants: 10,
-    status: 'PLAYING',
-    __v: 2,
-    playerStatus: {
-      '6195806cc70f178f96b03b83': 'ALIVE',
-      '619a16707b117e747bf86941': 'ALIVE',
-      '61968ba069cb1a75b6832c2e': 'ALIVE',
-    },
-    roles: 'WOLF',
-  };
-  const auth = {
-    _id: '6195806cc70f178f96b03b83',
-  };
-  const { _id, players, phase, turn, roles, playerStatus } = gameStateStatic;
+/**
+ * useEffect a function to get room information when first access this screen.
+ * if not having gameState then call getGameInformation()
+ * TODO
+ */
+const GameItem = ({ submitVote, game: { gameState } }) => {
+  const { _id, players, phase, turn, roles, playerStatus } = gameState;
 
   const [formData, setFormData] = useState({
     type: 'SKIP',
@@ -77,10 +41,6 @@ const GameItem = ({ submitVote }) => {
     );
     submitVote(_id, formData);
   };
-
-  useEffect(()=>{
-    
-  },[])
 
   return (
     <Fragment>
@@ -127,13 +87,12 @@ const GameItem = ({ submitVote }) => {
 };
 
 GameItem.propTypes = {
-  gameState: PropTypes.object.isRequired,
-  getGameInfo: PropTypes.func.isRequired,
+  game: PropTypes.object.isRequired,
   submitVote: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
-  gameState: state.gameState,
+  game: state.game,
 });
 
 export default connect(mapStateToProps, { submitVote })(GameItem);

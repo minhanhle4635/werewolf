@@ -10,9 +10,7 @@ const ENDPOINT = 'http://localhost:5000';
 
 let socket = io(ENDPOINT);
 
-const Room = ({ getLobby, lobby: { lobby, loading }, auth, match }) => {
-  const { user } = auth;
-
+const Room = ({ getLobby, lobby: { lobby, loading }, match }) => {
   useEffect(() => {
     getLobby(match.params.id);
   }, []);
@@ -23,12 +21,10 @@ const Room = ({ getLobby, lobby: { lobby, loading }, auth, match }) => {
 Room.propTypes = {
   getLobby: PropTypes.func.isRequired,
   lobby: PropTypes.object.isRequired,
-  auth: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   lobby: state.lobby,
-  auth: state.auth,
 });
 
 export default connect(mapStateToProps, { getLobby })(Room);

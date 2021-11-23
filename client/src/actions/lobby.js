@@ -70,7 +70,7 @@ export const getLobby = (id) => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: LOBBY_ERROR,
-      payload: { msg: err.response.statusText, status: err.response.status },
+      payload: { msg: 'game bi loi', status: 'game bi loi' },
     });
   }
 };
@@ -109,15 +109,13 @@ export const joinLobby = (id) => async (dispatch) => {
       type: GET_LOBBY,
       payload: res.data,
     });
-    // THIS IS A FUCKING HACK
-    // TODO: better handling this shit: mini-reload page
-    window.location.href = `/room/${id}`;
+
     dispatch(setAlert('Lobby Joined', 'success'));
   } catch (err) {
     debugger;
     dispatch({
       type: LOBBY_ERROR,
-      payload: { msg: err.response.statusText, status: err.response.status },
+      payload: { msg: 'Get lobby error', status: 'Get lobby error' },
     });
   }
 };

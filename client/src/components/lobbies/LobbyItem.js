@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { joinLobby } from '../../actions/lobby';
 import io from 'socket.io-client';
+import { useHistory } from 'react-router-dom';
 
 const ENDPOINT = 'http://localhost:5000';
 
@@ -20,6 +21,13 @@ const LobbyItem = ({
   },
   joinLobby,
 }) => {
+  const locate = useHistory();
+
+  async function joinLobbyBeforeNavigate(roomId) {
+    await joinLobby(roomId);
+    locate.push(`/room/${roomId}`);
+  }
+
   return (
     <Fragment>
       <div className="post bg-white p-1 my-1">
@@ -42,7 +50,7 @@ const LobbyItem = ({
           <button
             // to={`/room/${_id}`}
             className="btn btn-primary"
-            onClick={(e) => joinLobby(_id)}
+            onClick={(e) => joinLobbyBeforeNavigate(_id)}
           >
             Join Lobby
           </button>
@@ -59,6 +67,7 @@ LobbyItem.defaultProps = {
 LobbyItem.propTypes = {
   lobby: PropTypes.object.isRequired,
   joinLobby: PropTypes.func.isRequired,
+  useHistory: PropTypes.func.isRequired,
 };
 
-export default connect(null, { joinLobby })(LobbyItem);
+export default connect(null, { joinLobby, useHistory })(LobbyItem);

@@ -56,14 +56,27 @@ io.on('connection', (socket) => {
     if (roomInformation.owner === userLeave._id) {
       io.to(roomInformation._id).emit('DISBAND_ROOM', null);
     } else {
-      io.to(roomInformation._id).emit('USER_LEFT', userLeave);
+      io.to(roomInformation._id).emit('USER_LEFT', userLeave._id);
     }
     socket.leave(roomInformation._id);
   });
 
+  socket.on('ROOM_GENERATED', (generatedGameId) => {
+    io.to(generatedGameId).emit('START_GAME', generatedGameId);
+  });
+
   /**
-   *
+   * Start game event
+   * client join game
    */
+  // socket.on('START_GAME', (roomInfor) => {
+  //   console.log(roomInfor);
+  //   /**
+  //    * Khi ma room start -> owner start -> cho emit moi navigate
+  //    * neu user ko o trong
+  //    */
+  //   // TODO
+  // });
 });
 
 //Define Route

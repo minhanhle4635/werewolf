@@ -9,6 +9,7 @@ import Login from './components/auth/Login';
 import Lobbies from './components/lobbies/Lobbies';
 import LobbyForm from './components/lobbies/LobbyForm';
 import Room from './components/room/Room';
+import Game from './components/game/Game';
 import './App.css';
 
 //Redux
@@ -17,7 +18,6 @@ import store from './store';
 import { loadUser } from './actions/auth';
 import PrivateRoute from './components/routing/PrivateRoute';
 import homepage from './components/index/homepage';
-import Game from './components/game/Game';
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);

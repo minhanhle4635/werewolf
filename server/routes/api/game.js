@@ -25,11 +25,9 @@ router.post('/:roomId/start', auth, async (req, res) => {
   roomInfo.status = 'PLAYING';
   await roomInfo.save();
 
-  const returnObject = roomInfo.toObject();
   // this event is global?
-  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', returnObject);
-  returnObject.roles = returnObject.roles[req.user.id];
-  return res.json(returnObject);
+  // TODO GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', returnObject);
+  return res.json(roomInfo._id);
 });
 
 //POST players roles do vote
@@ -52,6 +50,22 @@ router.post('/:roomId/vote', auth, async (req, res) => {
   }
 
   return handleVote(roomInfo, req, res);
+});
+
+/**
+ * GET room information.
+ */
+router.get('/:roomId/info', [auth], async (req, res) => {
+  const roomInfo = await Room.findById(req.params.roomId)
+    .select(['+roles'])
+    .populate('players', ['name', 'avatar']);
+
+  if (!roomInfo || roomInfo.status === 'CLOSED') {
+    return res.status(400).json({ msg: 'Wrong' });
+  }
+  const returnObject = roomInfo.toObject();
+  returnObject.roles = returnObject.roles[req.user.id];
+  return res.json(returnObject);
 });
 
 //function rollDice
