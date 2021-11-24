@@ -30,19 +30,23 @@ const LobbyItem = ({
 
   return (
     <Fragment>
-      <div className="post bg-white p-1 my-1">
-        <div>
-          <img className="round-img" src={avatar} alt="" />
-          <h4>
+      <div className="border rounded p-4 flex space-x-2">
+        <div className="p-2 grid place-items-center">
+          <img
+            className="rounded border border-white shadow-lg w-40 h-40"
+            src={avatar}
+            alt=""
+          />
+        </div>
+        <div className="flex flex-col space-y-2 flex-1">
+          <h4 className="text-lg font-bold">
             Owner: <Link to={`/profile/${owner_id}`}>{name}</Link>
           </h4>
-        </div>
-        <div>
-          <p className="lobby-name">Room Name: {lobbyName}</p>
-          <p className="lobby-max">
+          <p className="">Room Name: {lobbyName}</p>
+          <p className="">
             Slots: {players.length}/{maxParticipants}
           </p>
-          <p className="lobby-desc">
+          <p className="">
             Desc: {description} <br />
           </p>
         </div>

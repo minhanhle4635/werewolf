@@ -97,7 +97,9 @@ GameEvent.eventEmitter.addListener(
     }
     setTimeout(async () => {
       // check the vote, update the room info, etc.
-      const roomDB = await Room.findById(roomInfo._id).populate(['players']);
+      const roomDB = await Room.findById(roomInfo._id)
+        .select(['+roles'])
+        .populate(['players']);
       if (!roomDB || roomDB.status === 'CLOSED') {
         return;
       }
@@ -123,12 +125,14 @@ async function countingDayVotes(room, voteOnTurnPhase) {
   /**
    * User with the highest vote.
    */
-  const maxedID = Object.keys(votes).reduce((a, b) =>
-    votes[a] > votes[b] ? a : b
-  );
-  if (votes[maxedID] > skip) {
-    // kill this bitch
-    room.playerStatus[maxedID] = 'DEAD';
+  if (Object.keys(votes).length !== 0) {
+    const maxedID = Object.keys(votes).reduce((a, b) =>
+      votes[a] > votes[b] ? a : b
+    );
+    if (votes[maxedID] > skip) {
+      // kill this bitch
+      room.playerStatus[maxedID] = 'DEAD';
+    }
   }
   room.phase = 'NIGHT';
   await room.save();
@@ -146,16 +150,19 @@ async function countingNightVotes(room, voteOnTurnPhase) {
   /**
    * User with the highest vote.
    */
-  const maxedID = Object.keys(votes).reduce((a, b) =>
-    votes[a] > votes[b] ? a : b
-  );
-  if (room.roles[maxedID] !== 'WOLF') {
-    if (votes[maxedID] > skip) {
-      // kill this bitch
-      // only when the vote is correctly at the villager and is more than skipped vote.
-      room.playerStatus[maxedID] = 'DEAD';
+  if (Object.keys(votes).length !== 0) {
+    const maxedID = Object.keys(votes).reduce((a, b) =>
+      votes[a] > votes[b] ? a : b
+    );
+    if (room.roles[maxedID] !== 'WOLF') {
+      if (votes[maxedID] > skip) {
+        // kill this bitch
+        // only when the vote is correctly at the villager and is more than skipped vote.
+        room.playerStatus[maxedID] = 'DEAD';
+      }
     }
   }
+
   room.turn = room.turn + 1;
   room.phase = 'DAY';
   await room.save();

@@ -53,17 +53,14 @@ export const submitVote =
     const body = JSON.stringify({ type, targeted });
     try {
       const res = await axios.post(`/api/game/${roomId}/vote`, body, config);
-
       dispatch({
         type: VOTED_SUCCESS,
         payload: res.data,
       });
-
-      dispatch(getGameInformation(roomId));
     } catch (err) {
       dispatch({
         type: GAME_ERROR,
-        payload: { msg: err.response.statusText, status: err.response.status },
+        payload: { msg: 'Game loi', status: 'Game loi' },
       });
     }
   };

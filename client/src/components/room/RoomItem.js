@@ -19,6 +19,7 @@ const RoomItem = ({
   leaveLobby,
   getLobbies,
   startGame,
+  getGameInformation,
 }) => {
   const { _id, players, lobbyName, maxParticipants, description } = lobby;
   // localStorage.setItem('current_lobby', JSON.stringify(lobby));
@@ -31,7 +32,7 @@ const RoomItem = ({
   }
 
   useEffect(() => {
-    getGameInformation(lobby._id);
+    getLobby(lobby._id);
   }, []);
 
   async function startGameFunction() {
@@ -68,6 +69,7 @@ const RoomItem = ({
       return;
     }
     console.log(generatedGameId);
+    await getGameInformation(generatedGameId);
     // other user and the host himself
     u.push(`/game/${generatedGameId}`);
   };
@@ -94,6 +96,7 @@ const RoomItem = ({
       socket.removeListener('USER_JOINED', eventUserJoined);
       socket.removeListener('USER_LEFT', eventUserLeft);
       socket.removeListener('DISBAND_ROOM', eventRoomDisband);
+      socket.removeListener('START_GAME', eventStartGame);
     };
   }, [getLobby, getLobbies, lobby._id]);
 
@@ -113,7 +116,7 @@ const RoomItem = ({
           Players:
           {players.map((player) => (
             <div key={player._id}>
-              <img src={player.avatar} alt="" />
+              <img className="w-40 h40" src={player.avatar} alt="" />
               <h4>{player.name}</h4>
             </div>
           ))}

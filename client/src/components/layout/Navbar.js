@@ -4,17 +4,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { logout } from '../../actions/auth';
 
-const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
+const Navbar = ({ auth: { isAuthenticated, loading, user }, logout }) => {
   const authLinks = (
     <ul>
       <li>
         <Link to="/lobbies">Lobbies</Link>
       </li>
       <li>
-        <Link to="/posts">Posts</Link>
-      </li>
-      <li>
-        <Link to="/profile/:id">Profile</Link>
+        <Link to={`/profile/${user && user._id}`}>Profile</Link>
       </li>
       <li>
         <a onClick={logout} href="#!">
@@ -40,7 +37,7 @@ const Navbar = ({ auth: { isAuthenticated, loading }, logout }) => {
   );
 
   return (
-    <nav className="navbar bg-dark">
+    <nav className="h-12 navbar bg-dark">
       <h1>
         <Link to="/">
           <i className="fas fa-code"></i> WereWolf Online

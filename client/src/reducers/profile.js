@@ -1,45 +1,45 @@
+/* eslint-disable import/no-anonymous-default-export */
 import {
-  GAME_ERROR,
-  VOTED_SUCCESS,
-  GET_GAME_INFO_ID,
-  GET_GAME_INFO,
+  GET_PROFILE,
+  PROFILE_ERROR,
+  CLEAR_PROFILE,
+  GET_PROFILES,
 } from '../actions/types';
 
 const initialState = {
-  gameState: null,
-  gameId: null,
-  vote: null,
+  profile: null,
+  profiles: [],
+  repos: [],
   loading: true,
   error: {},
 };
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default function (state = initialState, action) {
   const { type, payload } = action;
-  // eslint-disable-next-line default-case
   switch (type) {
-    case GET_GAME_INFO_ID:
+    case GET_PROFILE:
       return {
         ...state,
-        gameId: payload,
+        profile: payload,
         loading: false,
       };
-    case GET_GAME_INFO:
+    case GET_PROFILES:
       return {
         ...state,
-        gameState: payload,
+        profiles: payload,
         loading: false,
       };
-    case VOTED_SUCCESS:
-      return {
-        ...state,
-        vote: payload,
-        loading: false,
-      };
-    case GAME_ERROR:
+    case PROFILE_ERROR:
       return {
         ...state,
         error: payload,
+        loading: false,
+      };
+    case CLEAR_PROFILE:
+      return {
+        ...state,
+        profile: null,
+        repos: [],
         loading: false,
       };
     default:

@@ -26,7 +26,7 @@ router.post('/:roomId/start', auth, async (req, res) => {
   await roomInfo.save();
 
   // this event is global?
-  // TODO GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', returnObject);
+  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', roomInfo);
   return res.json(roomInfo._id);
 });
 

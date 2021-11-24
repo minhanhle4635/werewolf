@@ -22,7 +22,9 @@ const Game = ({ game: { gameState, gameId, loading }, getGameInformation }) => {
   console.log(gameId);
 
   useEffect(() => {
-    getGameInformation(gameId);
+    if (!gameState) {
+      getGameInformation(gameId);
+    }
   }, []);
   // if (!gameInfo) {
   //   await updateStateGameInfo();

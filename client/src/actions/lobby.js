@@ -130,8 +130,6 @@ export const leaveLobby = (id) => async (dispatch) => {
       payload: res.data,
     });
 
-    dispatch(getLobbies());
-
     socket.emit('LEAVE_ROOM', {
       roomInformation: res.data.data,
       userLeave: res.data.user,

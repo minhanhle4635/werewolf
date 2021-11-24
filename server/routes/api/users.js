@@ -80,6 +80,7 @@ router.post(
       const profile = new Profile({
         fullname: name,
         email: email,
+        user: user._id,
       });
 
       await profile.save();

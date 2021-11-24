@@ -10,6 +10,9 @@ import Lobbies from './components/lobbies/Lobbies';
 import LobbyForm from './components/lobbies/LobbyForm';
 import Room from './components/room/Room';
 import Game from './components/game/Game';
+import Profile from './components/profile/Profile';
+import EditProfile from './components/profile-form/EditProfile';
+import homepage from './components/index/homepage';
 import './App.css';
 
 //Redux
@@ -17,7 +20,6 @@ import { Provider } from 'react-redux';
 import store from './store';
 import { loadUser } from './actions/auth';
 import PrivateRoute from './components/routing/PrivateRoute';
-import homepage from './components/index/homepage';
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -34,7 +36,7 @@ const App = () => {
         <Fragment>
           <Navbar />
           <Route exact path="/" component={Landing} />
-          <section className="container">
+          <section className="mt-12" style={sectionStyles}>
             <Alert />
             <Switch>
               <Route exact path="/register" component={Register} />
@@ -45,12 +47,22 @@ const App = () => {
               <PrivateRoute exact path="/create_room" component={LobbyForm} />
               <PrivateRoute exact path="/room/:id" component={Room} />
               <PrivateRoute exact path="/game/:id" component={Game} />
+              <PrivateRoute
+                exact
+                path="/edit-profile"
+                component={EditProfile}
+              />
+              <PrivateRoute exact path="/profile/:id" component={Profile} />
             </Switch>
           </section>
         </Fragment>
       </Router>
     </Provider>
   );
+};
+
+const sectionStyles = {
+  height: 'calc(100vh - 3rem)',
 };
 
 export default App;

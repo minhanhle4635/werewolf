@@ -11,7 +11,7 @@ router.post('/', auth, async (req, res) => {
 
     //Check if user already in any lobby
     const stayedRoom = await Room.find({
-      status: 'open',
+      status: 'OPEN',
       players: { $in: user.id.toString() },
     });
 
