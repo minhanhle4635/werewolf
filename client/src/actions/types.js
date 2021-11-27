@@ -31,3 +31,6 @@ export const GET_GAME_INFO_ID = 'GET_GAME_INFO_ID';
 export const GET_GAME_INFO = 'GET_GAME_INFO';
 export const GAME_ERROR = 'GAME_ERROR';
 export const VOTED_SUCCESS = 'VOTED_SUCCESS';
+export const REMOVE_VOTE = 'REMOVE_VOTE';
+export const UPDATE_GAME_INFO = 'UPDATE_GAME_INFO';
+export const END_GAME = 'END_GAME';

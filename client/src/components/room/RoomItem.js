@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -39,7 +39,6 @@ const RoomItem = ({
     // call API to generate/start game
     // then emit socket to server inform that the room is finished.
     const id = await startGame(_id);
-    console.log(id);
     socket.emit('ROOM_GENERATED', id);
   }
 
@@ -102,50 +101,52 @@ const RoomItem = ({
 
   return (
     <Fragment>
-      <div>
-        <h2>Lobby Name: {lobbyName}</h2>
-      </div>
-      <div className="lobby bg-white p-1 my-1">
-        <div>LobbyID: {_id}</div>
-        <div>
-          Number of players required: {players.length}/{maxParticipants}
+      <div className="flex">
+        <div className="">
+          <h2>Lobby Name: {lobbyName}</h2>
         </div>
+        <div className="flex border-8 items-center">
+          <div>LobbyID: {_id}</div>
+          <div>
+            Number of players required: {players.length}/{maxParticipants}
+          </div>
 
-        <div>Desc: {description}</div>
-        <div className="bg-white">
-          Players:
-          {players.map((player) => (
-            <div key={player._id}>
-              <img className="w-40 h40" src={player.avatar} alt="" />
-              <h4>{player.name}</h4>
-            </div>
-          ))}
+          <div>Desc: {description}</div>
+          <div className="bg-white">
+            Players:
+            {players.map((player) => (
+              <div key={player._id}>
+                <img className="w-40 h40" src={player.avatar} alt="" />
+                <h4>{player.name}</h4>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div>
-        {auth && auth.user && auth.user._id === lobby.owner ? (
-          players.length > 3 ? (
-            <button className="btn btn-danger" disabled>
-              Waiting for more players
-            </button>
+        <div>
+          {auth && auth.user && auth.user._id === lobby.owner ? (
+            players.length > 3 ? (
+              <button className="btn btn-danger" disabled>
+                Waiting for more players
+              </button>
+            ) : (
+              <button
+                onClick={() => startGameFunction()}
+                className="btn btn-light"
+              >
+                Start Game
+              </button>
+            )
           ) : (
-            <button
-              onClick={() => startGameFunction()}
-              className="btn btn-light"
-            >
-              Start Game
+            <button className="btn btn-danger" disabled>
+              Waiting for more owner to start
             </button>
-          )
-        ) : (
-          <button className="btn btn-danger" disabled>
-            Waiting for more owner to start
-          </button>
-        )}
-      </div>
-      <div>
-        <Link to="/lobbies" onClick={(e) => leaveLobby(_id)}>
-          <button className="btn btn-danger">Quit</button>
-        </Link>
+          )}
+        </div>
+        <div>
+          <Link to="/lobbies" onClick={(e) => leaveLobby(_id)}>
+            <button className="btn btn-danger">Quit</button>
+          </Link>
+        </div>
       </div>
     </Fragment>
   );

@@ -5,16 +5,22 @@ import PropTypes from 'prop-types';
 const homepage = (props) => {
   return (
     <Fragment>
-      <div className="container">
-        <div className="landing-inner">
-          <div className="buttons">
-            <Link to="/lobbies">Find Room</Link>
+      <div className="flex w-full h-full justify-center items-center bg-homepage-cover bg-no-repeat bg-cover">
+        <div className="border-2 border-purple-700 bg-purple-700">
+          <div>
+            <button className="block p-2 m-4 w-80 cursor-pointer text-white bg-yellow-800 rounded shadow">
+              <Link to="/lobbies">Find Room</Link>
+            </button>
           </div>
-          <div className="buttons">
-            <Link to="/create_room">Create a new Room</Link>
+          <div>
+            <button className="block p-2 m-4 w-80 cursor-pointer text-white bg-yellow-800 rounded shadow">
+              <Link to="/create_room">Create a new Room</Link>
+            </button>
           </div>
-          <div className="buttons">
-            <Link to="/profile/:id">My Profile</Link>
+          <div>
+            <button className="block p-2 m-4 w-80 cursor-pointer text-white bg-yellow-800 rounded shadow">
+              <Link to="/profile/:id">My Profile</Link>
+            </button>
           </div>
         </div>
       </div>

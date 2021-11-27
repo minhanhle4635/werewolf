@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
   socket.on('JOIN_ROOM', ({ roomInformation, userJoined }) => {
     socket.join(roomInformation._id);
     console.log(roomInformation);
-    io.to(roomInformation._id).emit('USER_JOINED', userJoined);
+    socket.broadcast.emit('USER_JOINED', userJoined);
   });
 
   /**
@@ -89,6 +89,7 @@ app.use('/api/game', require('./routes/api/game'));
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server started on port ${PORT} `));
 
+//TODO: Change back to timeout 60s
 GameEvent.eventEmitter.addListener(
   'ROOM_TURN_DAY_START',
   async function (roomInfo) {
@@ -113,7 +114,7 @@ GameEvent.eventEmitter.addListener(
       } else {
         await countingDayVotes(roomDB, voteOnTurnPhase);
       }
-    }, 10000);
+    }, 30000);
   }
 );
 
@@ -131,20 +132,46 @@ async function countingDayVotes(room, voteOnTurnPhase) {
     );
     if (votes[maxedID] > skip) {
       // kill this bitch
-      room.playerStatus[maxedID] = 'DEAD';
+      // make sure the playerStatus here does not get referred
+      // to the original object from the `room` record.
+      // I doubt that when we save the room, the reference point of
+      // `room.playerStatus` make changes to our object, cause the object
+      // to be reverted to the old state. or something like that.
+      // JSON.parse/stringify to make sure the object we are passing
+      // in will be independed.
+      const playerStatus = JSON.parse(JSON.stringify(room.playerStatus));
+      playerStatus[maxedID] = 'DEAD';
+      room.playerStatus = playerStatus;
     }
   }
-  room.phase = 'NIGHT';
-  await room.save();
-  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
-  // emit the voting result
-  io.to(room.id).emit('VOTE_COUNTED', room);
+  const wolfAlive = playerAlive.filter(
+    (player) => room.roles[player._id.toString()] === 'WOLF'
+  );
+  room.turnTimeStamp = new Date();
+  if (
+    wolfAlive.length >= playerAlive.length - wolfAlive.length ||
+    wolfAlive.length === 0
+  ) {
+    room.status = 'CLOSED';
+    await room.save();
+    io.to(room.id).emit('GAME_END');
+  } else {
+    // GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
+    room.phase = 'NIGHT';
+    await room.save();
+    io.to(room.id).emit('ABC');
+    io.to(room.id).emit('VOTE_COUNTED', room);
+  }
 }
 async function countingNightVotes(room, voteOnTurnPhase) {
   const wolfAlive = room.players.filter(
     (player) =>
       room.playerStatus[player._id.toString()] === 'ALIVE' &&
       room.roles[player._id.toString()] === 'WOLF'
+  );
+
+  const playerAlive = room.players.filter(
+    (player) => room.playerStatus[player._id.toString()] === 'ALIVE'
   );
   const { votes, skip } = await countVote(room, voteOnTurnPhase, wolfAlive);
   /**
@@ -158,17 +185,29 @@ async function countingNightVotes(room, voteOnTurnPhase) {
       if (votes[maxedID] > skip) {
         // kill this bitch
         // only when the vote is correctly at the villager and is more than skipped vote.
-        room.playerStatus[maxedID] = 'DEAD';
+        const playerStatus = room.playerStatus;
+        playerStatus[maxedID] = 'DEAD';
+        room.playerStatus = playerStatus;
       }
     }
   }
-
-  room.turn = room.turn + 1;
-  room.phase = 'DAY';
-  await room.save();
-  GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
-  // emit the voting result
-  io.to(room.id).emit('VOTE_COUNTED', room);
+  room.turnTimeStamp = new Date();
+  if (
+    wolfAlive.length >= playerAlive.length - wolfAlive.length ||
+    wolfAlive.length === 0
+  ) {
+    room.status = 'CLOSED';
+    await room.save();
+    io.to(room.id).emit('GAME_END');
+  } else {
+    // GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
+    room.turn = room.turn + 1;
+    room.phase = 'DAY';
+    await room.save();
+    const responseRoom = room.toObject();
+    delete responseRoom.roles;
+    io.to(room.id).emit('VOTE_COUNTED', responseRoom);
+  }
 }
 async function countVote(room, voteOnTurnPhase, playerAlive) {
   if (voteOnTurnPhase.length < playerAlive.length) {

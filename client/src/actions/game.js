@@ -5,16 +5,14 @@ import {
   GAME_ERROR,
   VOTED_SUCCESS,
   GET_GAME_INFO,
+  REMOVE_VOTE,
+  UPDATE_GAME_INFO,
+  END_GAME,
 } from './types';
 
 export const startGame = (id) => async (dispatch) => {
   try {
     const res = await axios.post(`/api/game/${id}/start`);
-
-    dispatch({
-      type: GET_GAME_INFO_ID,
-      payload: res.data,
-    });
     return res.data;
   } catch (err) {
     dispatch({
@@ -39,6 +37,22 @@ export const getGameInformation = (id) => async (dispatch) => {
       payload: { msg: err.response.statusText, status: err.response.status },
     });
   }
+};
+
+export const updateGameInfo = (room) => (dispatch) => {
+  dispatch({
+    type: UPDATE_GAME_INFO,
+    payload: room,
+  });
+  dispatch({
+    type: REMOVE_VOTE,
+  });
+};
+
+export const endGame = () => (dispatch) => {
+  dispatch({
+    type: END_GAME,
+  });
 };
 
 export const submitVote =

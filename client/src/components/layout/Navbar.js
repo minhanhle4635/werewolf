@@ -6,7 +6,7 @@ import { logout } from '../../actions/auth';
 
 const Navbar = ({ auth: { isAuthenticated, loading, user }, logout }) => {
   const authLinks = (
-    <ul>
+    <ul className="flex space-x-2">
       <li>
         <Link to="/lobbies">Lobbies</Link>
       </li>
@@ -23,7 +23,7 @@ const Navbar = ({ auth: { isAuthenticated, loading, user }, logout }) => {
   );
 
   const guestLinks = (
-    <ul>
+    <ul className="flex space-x-2">
       <li>
         <Link to="/about">About</Link>
       </li>
@@ -37,12 +37,10 @@ const Navbar = ({ auth: { isAuthenticated, loading, user }, logout }) => {
   );
 
   return (
-    <nav className="h-12 navbar bg-dark">
-      <h1>
-        <Link to="/">
-          <i className="fas fa-code"></i> WereWolf Online
-        </Link>
-      </h1>
+    <nav className="fixed left-0 top-0 w-full z-50 h-12 flex justify-between px-2 items-center bg-gray-800 text-white">
+      <Link className="text-lg" to="/">
+        <i className="fas fa-code"></i> WereWolf Online
+      </Link>
       {!loading && (
         <Fragment>{isAuthenticated ? authLinks : guestLinks}</Fragment>
       )}

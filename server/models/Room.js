@@ -27,6 +27,10 @@ const RoomSchema = new mongoose.Schema({
     required: true,
     default: 1,
   },
+  turnTimeStamp: {
+    type: Date,
+    default: null,
+  },
   lobbyName: {
     type: String,
     required: true,

@@ -23,6 +23,7 @@ router.post('/:roomId/start', auth, async (req, res) => {
   roomInfo.roles = initRoles;
   roomInfo.playerStatus = playerStatus;
   roomInfo.status = 'PLAYING';
+  roomInfo.turnTimeStamp = new Date();
   await roomInfo.save();
 
   // this event is global?

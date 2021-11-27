@@ -53,7 +53,7 @@ const LobbyItem = ({
         <div>
           <button
             // to={`/room/${_id}`}
-            className="btn btn-primary"
+            className="block p-2 cursor-pointer text-white bg-blue-600 rounded shadow"
             onClick={(e) => joinLobbyBeforeNavigate(_id)}
           >
             Join Lobby

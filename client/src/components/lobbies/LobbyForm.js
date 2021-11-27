@@ -29,22 +29,25 @@ const LobbyForm = ({ createLobby }) => {
   // }
 
   return (
-    <div className="post-form">
-      <div className="bg-primary p">
-        <h3>Creating new Lobby</h3>
+    <div className="flex  w-full h-full flex-col items-start justify-items-center p-8 space-y-2 bg-create-room-cover bg-cover">
+      <div className="bg-primary mx-auto">
+        <h3 className="text-2xl font-bold text-white">Creating new Room</h3>
       </div>
-      <form className="form my-1" onSubmit={(e) => onSubmit(e)}>
-        <div className="form-group">
+      <form
+        className="w-80 mx-auto bg-blue-800 p-4"
+        onSubmit={(e) => onSubmit(e)}
+      >
+        <div className="text-white">
           Name:
           <input
             type="text"
             name="lobbyName"
             value={lobbyName}
             onChange={(e) => onChange(e)}
-            required
+            requireds
           />
         </div>
-        <div className="form-group">
+        <div className="text-white">
           Max number of participants:
           <select
             name="maxParticipants"
@@ -56,7 +59,7 @@ const LobbyForm = ({ createLobby }) => {
             <option value="15">15</option>
           </select>
         </div>
-        <div className="form-group">
+        <div className="text-white">
           Description:
           <textarea
             name="description"
@@ -72,7 +75,6 @@ const LobbyForm = ({ createLobby }) => {
 
 LobbyForm.propTypes = {
   createLobby: PropTypes.func.isRequired,
-  lobby: PropTypes.object.isRequired,
 };
 
 export default connect(null, { createLobby })(LobbyForm);
