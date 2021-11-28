@@ -75,13 +75,16 @@ io.on('connection', (socket: Socket) => {
 	});
 });
 
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`Server started on port ${PORT} `));
+
 GameEvent.eventEmitter.addListener('ROOM_TURN_DAY_START', async function (roomInfo) {
 	if (roomInfo.status === 'CLOSED') {
 		return;
 	}
 	setTimeout(async () => {
 		// check the vote, update the room info, etc.
-		const roomDB = await Room.findById(roomInfo.id).populate(['+players']);
+		const roomDB = await Room.findById(roomInfo.id).populate(['players']);
 
 		if (!roomDB || roomDB.status === 'CLOSED') {
 			return;
@@ -100,9 +103,6 @@ GameEvent.eventEmitter.addListener('ROOM_TURN_DAY_START', async function (roomIn
 		}
 	}, 30000);
 });
-
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server started on port ${PORT} `));
 
 async function countingDayVotes(room: IRoomDocument, voteOnTurnPhase: IVoteDocument[]) {
 	const playerAlive = room.players.filter(playerId => room.playerStatus[playerId.toString()] === PLAYER_STATUS.ALIVE);
