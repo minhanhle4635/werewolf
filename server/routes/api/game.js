@@ -19,8 +19,7 @@ router.post('/:roomId/start', auth, async (req, res) => {
   }
 
   const playerStatus = createInitialStatus(roomInfo);
-  const initRoles = createInitialRoles(roomInfo);
-  roomInfo.roles = initRoles;
+  roomInfo.roles = createInitialRoles(roomInfo);
   roomInfo.playerStatus = playerStatus;
   roomInfo.status = 'PLAYING';
   roomInfo.turnTimeStamp = new Date();

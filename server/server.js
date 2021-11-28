@@ -1,7 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const connectDB = require('./config/db');
-const events = require('events');
 const GameEvent = require('./event/game.event');
 
 const app = express();
@@ -154,13 +152,13 @@ async function countingDayVotes(room, voteOnTurnPhase) {
   ) {
     room.status = 'CLOSED';
     await room.save();
-    io.to(room.id).emit('GAME_END');
+    io.socket.to(room.id).emit('GAME_END');
   } else {
     // GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
     room.phase = 'NIGHT';
     await room.save();
     io.to(room.id).emit('ABC');
-    io.to(room.id).emit('VOTE_COUNTED', room);
+    io.socket.to(room.id).emit('VOTE_COUNTED', room);
   }
 }
 async function countingNightVotes(room, voteOnTurnPhase) {
@@ -198,7 +196,7 @@ async function countingNightVotes(room, voteOnTurnPhase) {
   ) {
     room.status = 'CLOSED';
     await room.save();
-    io.to(room.id).emit('GAME_END');
+    io.socket.to(room.id).emit('GAME_END');
   } else {
     // GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
     room.turn = room.turn + 1;
@@ -206,7 +204,7 @@ async function countingNightVotes(room, voteOnTurnPhase) {
     await room.save();
     const responseRoom = room.toObject();
     delete responseRoom.roles;
-    io.to(room.id).emit('VOTE_COUNTED', responseRoom);
+    io.socket.to(room.id).emit('VOTE_COUNTED', responseRoom);
   }
 }
 async function countVote(room, voteOnTurnPhase, playerAlive) {
