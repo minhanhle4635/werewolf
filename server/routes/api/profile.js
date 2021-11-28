@@ -27,7 +27,7 @@ router.get('/me', auth, async (req, res) => {
 });
 
 // @route   POST api/profile
-// @desc    Create or update user profile
+// @desc    update user profile
 // @access  Private
 router.post('/:id', [auth], async (req, res) => {
   const errors = validationResult(req);
@@ -50,8 +50,7 @@ router.post('/:id', [auth], async (req, res) => {
       //Update
       profile = await Profile.findOneAndUpdate(
         { user: req.user.id },
-        { $set: profileFields },
-        { new: true }
+        { $set: profileFields }
       );
 
       return res.json(profile);

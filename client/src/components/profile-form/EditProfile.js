@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Fragment } from 'react';
-import { createProfile, getCurrentProfile } from '../../actions/profile';
+import { editProfile, getCurrentProfile } from '../../actions/profile';
 import { Link, withRouter } from 'react-router-dom';
 
 const EditProfile = ({
   profile: { profile, loading },
-  createProfile,
+  editProfile,
   getCurrentProfile,
   history,
   match,
@@ -16,7 +16,6 @@ const EditProfile = ({
     fullname: '',
     email: '',
     bio: '',
-    DoB: '',
   });
 
   useEffect(() => {
@@ -36,7 +35,7 @@ const EditProfile = ({
 
   const onSubmit = (e) => {
     e.preventDefault();
-    createProfile(formData, history, true);
+    editProfile(formData, match.params._id);
   };
 
   return (
@@ -72,7 +71,7 @@ const EditProfile = ({
         </div>
 
         <input type="submit" className="btn btn-primary my-1" />
-        <Link className="btn btn-light my-1" to="/dashboard">
+        <Link className="btn btn-light my-1" to="/homepage">
           Go Back
         </Link>
       </form>
@@ -81,7 +80,7 @@ const EditProfile = ({
 };
 
 EditProfile.propTypes = {
-  createProfile: PropTypes.func.isRequired,
+  editProfile: PropTypes.func.isRequired,
   getCurrentProfile: PropTypes.func.isRequired,
   profile: PropTypes.object.isRequired,
 };
@@ -90,6 +89,6 @@ const mapStateToProps = (state) => ({
   profile: state.profile,
 });
 
-export default connect(mapStateToProps, { createProfile, getCurrentProfile })(
+export default connect(mapStateToProps, { editProfile, getCurrentProfile })(
   withRouter(EditProfile)
 );

@@ -40,14 +40,16 @@ const GameItem = ({
   }, [runTimer]);
 
   useEffect(() => {
+    if (turnTimeStamp) {
+      setRunTimer(true);
+      setCountDown(60);
+    }
     if (countDown < 0 && runTimer) {
       console.log('expired');
       setRunTimer(false);
       setCountDown(0);
     }
-  }, [countDown, runTimer]);
-
-  const togglerTimer = () => setRunTimer((t) => !t);
+  }, [countDown, runTimer, turnTimeStamp]);
 
   const seconds = String(countDown % 60).padStart(2, 0);
   const minutes = String(Math.floor(countDown / 60)).padStart(2, 0);
@@ -74,10 +76,6 @@ const GameItem = ({
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    console.log(
-      players.filter((player) => playerStatus[player._id] === 'ALIVE')
-    );
     submitVote(_id, formData);
   };
 
@@ -100,7 +98,11 @@ const GameItem = ({
         <div className="flex-1">
           <div className="flex items-center p-1 justify-between h-12 w-full">
             <div className="px-2 flex items-center justify-center border-2 border-green-600 h-10 w-30">
-              Player alive: 10
+              Player alive:{' '}
+              {
+                players.filter((player) => playerStatus[player._id] === 'ALIVE')
+                  .length
+              }
             </div>
             <div>
               <Link to="/lobbies" onClick={(e) => leaveLobby(_id)}>
@@ -155,11 +157,6 @@ const GameItem = ({
           </div>
           <div className="bg-red-400 border-2">
             Timer: {minutes} : {seconds}
-          </div>
-          <div>
-            <button type="button" onClick={togglerTimer}>
-              {runTimer ? 'Stop' : 'Start'}
-            </button>
           </div>
           <div className="border-2 bg-yellow-300">Your role: {roles}</div>
           <div className="text-center h-30 mb-5 items-center">
