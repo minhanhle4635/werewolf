@@ -4,9 +4,6 @@ import { connect } from 'react-redux';
 import { getGameInformation } from '../../actions/game';
 import GameItem from './GameItem';
 import Spinner from '../layout/Spinner';
-import io from 'socket.io-client';
-
-let socket = io('http://localhost:5000');
 
 /**
  * 1. call API getGameInformation -> update state -> continue play
@@ -18,12 +15,10 @@ let socket = io('http://localhost:5000');
  *
  * GOAL: ensure to have gameInfo to play!
  */
-const Game = ({ game: { gameState, gameId, loading }, getGameInformation }) => {
-  console.log(gameId);
-
+const Game = ({ game: { gameState, loading }, getGameInformation }) => {
   useEffect(() => {
-    if (!gameState) {
-      getGameInformation(gameId);
+    if (gameState && gameState._id) {
+      getGameInformation(gameState._id);
     }
   }, []);
   // if (!gameInfo) {

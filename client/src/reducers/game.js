@@ -1,7 +1,6 @@
 import {
   GAME_ERROR,
   VOTED_SUCCESS,
-  GET_GAME_INFO_ID,
   GET_GAME_INFO,
   REMOVE_VOTE,
   UPDATE_GAME_INFO,
@@ -26,8 +25,10 @@ export default function (state = initialState, action) {
         ...state,
         gameState: payload,
         loading: false,
+        gameOver: false,
       };
     case UPDATE_GAME_INFO:
+      debugger;
       return {
         ...state,
         gameState: Object.assign({}, state.gameState, payload),

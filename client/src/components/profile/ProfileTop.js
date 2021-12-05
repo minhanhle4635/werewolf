@@ -10,9 +10,9 @@ const ProfileTop = ({
 }) => {
   return (
     <div class="profile-top bg-primary p-2">
-      <img class="round-img my-1" src={avatar} alt="" />
-      <h1 class="large">{fullname}</h1>
-      <p class="lead">{email}</p>
+      <img class="rounded-full" src={avatar} alt="" />
+      <h1 class="large">Full Name: {fullname}</h1>
+      <p class="lead">Email: {email}</p>
     </div>
   );
 };

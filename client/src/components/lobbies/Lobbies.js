@@ -14,8 +14,8 @@ const Lobbies = ({ getLobbies, lobbies: { lobbies, loading } }) => {
     <Spinner />
   ) : (
     <Fragment>
-      <div className="flex w-full h-full bg-lobby-cover bg-cover bg-opacity-50">
-        <section className="flex pt-5 m-5 flex-col space-y-2 text-white">
+      <div className="flex w-full h-full">
+        <section className="flex pt-5 m-5 flex-col space-y-2">
           <h1 className="text-lg font-bold">Lobby</h1>
           <p className="">
             <i className="" /> Choose Room to join

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { setAlert } from './alert';
 import {
-  GET_GAME_INFO_ID,
   GAME_ERROR,
   VOTED_SUCCESS,
   GET_GAME_INFO,
@@ -39,14 +38,22 @@ export const getGameInformation = (id) => async (dispatch) => {
   }
 };
 
-export const updateGameInfo = (room) => (dispatch) => {
-  dispatch({
-    type: UPDATE_GAME_INFO,
-    payload: room,
-  });
-  dispatch({
-    type: REMOVE_VOTE,
-  });
+export const updateGameInfo = (room) => async (dispatch) => {
+  try {
+    dispatch({
+      type: UPDATE_GAME_INFO,
+      payload: room,
+    });
+    dispatch({
+      type: REMOVE_VOTE,
+    });
+  } catch (err) {
+    console.log(err);
+    dispatch({
+      type: GAME_ERROR,
+      payload: { msg: 'Game loi', status: 'Game loi' },
+    });
+  }
 };
 
 export const endGame = () => (dispatch) => {

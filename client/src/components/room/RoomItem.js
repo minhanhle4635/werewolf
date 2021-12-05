@@ -7,8 +7,7 @@ import { io } from 'socket.io-client';
 import { loadUser } from '../../actions/auth';
 import { useHistory } from 'react-router-dom';
 import { getGameInformation, startGame } from '../../actions/game';
-
-const ENDPOINT = 'http://localhost:5000';
+import ENDPOINT from '../../utils/deploy';
 
 let socket = io(ENDPOINT);
 
@@ -91,7 +90,6 @@ const RoomItem = ({
     socket.on('START_GAME', eventStartGame);
 
     return () => {
-      console.log('user left the room');
       socket.removeListener('USER_JOINED', eventUserJoined);
       socket.removeListener('USER_LEFT', eventUserLeft);
       socket.removeListener('DISBAND_ROOM', eventRoomDisband);
@@ -101,7 +99,93 @@ const RoomItem = ({
 
   return (
     <Fragment>
-      <div className="flex">
+      <div className="mx-auto space-y-4 sm:w-96 md:w-8/12 lg:w-4/5 py-8">
+        <div className="flex justify-between">
+          <div className="px-4 py-2 rounded cursor-pointer outline-none shadow bg-red-600 text-white border-none">
+            <Link to="/lobbies" onClick={(e) => leaveLobby(_id)}>
+              <button className="btn btn-danger">Quit</button>
+            </Link>
+          </div>
+          <div className="px-4 py-2 rounded cursor-pointer outline-none shadow bg-green-600 text-white border-none">
+            {auth && auth.user && auth.user._id === lobby.owner ? (
+              players.length > 4 ? (
+                <button className="btn btn-danger" disabled>
+                  Waiting for more players
+                </button>
+              ) : (
+                <button
+                  onClick={() => startGameFunction()}
+                  className="btn btn-light"
+                >
+                  Start Game
+                </button>
+              )
+            ) : (
+              <button className="btn btn-danger" disabled>
+                Waiting for owner to start
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col space-y-2 rounded p-2 shadow bg-white">
+          <h1 className="text-2xl font-bold">Lobby Name: {lobbyName}</h1>
+          <div className="text-sm items-center flex space-x-2 text-gray-600">
+            <span>
+              Player: {players.length}/{maxParticipants}
+            </span>
+          </div>
+          <hr />
+          <div>Desc: {description}</div>
+          <hr />
+        </div>
+        <div className="flex flex-wrap rounded justify-between p-2 shadow bg-white">
+          <h1 className="w-full mb-2 font-bold text-smg uppercase select-none text-gray-400">
+            Players
+          </h1>
+
+          {players.map((player) => (
+            <div className="flex items-center p-2 w-1/2" key={player._id}>
+              <img
+                className="rounded-full w-12 h-12 object-cover object-center border border-green-600"
+                src={player.avatar}
+                alt=""
+              />
+              <div className="flex flex-1 pl-2 items-center font-bold">
+                {player.name}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* <div className="flex h-full w-full">
+        <div className="flex justify-between">
+          <div className="">
+            {auth && auth.user && auth.user._id === lobby.owner ? (
+              players.length > 3 ? (
+                <button className="btn btn-danger" disabled>
+                  Waiting for more players
+                </button>
+              ) : (
+                <button
+                  onClick={() => startGameFunction()}
+                  className="btn btn-light"
+                >
+                  Start Game
+                </button>
+              )
+            ) : (
+              <button className="btn btn-danger" disabled>
+                Waiting for owner to start
+              </button>
+            )}
+          </div>
+          <div>
+            <Link to="/lobbies" onClick={(e) => leaveLobby(_id)}>
+              <button className="btn btn-danger">Quit</button>
+            </Link>
+          </div>
+        </div>
         <div className="">
           <h2>Lobby Name: {lobbyName}</h2>
         </div>
@@ -122,32 +206,7 @@ const RoomItem = ({
             ))}
           </div>
         </div>
-        <div>
-          {auth && auth.user && auth.user._id === lobby.owner ? (
-            players.length > 3 ? (
-              <button className="btn btn-danger" disabled>
-                Waiting for more players
-              </button>
-            ) : (
-              <button
-                onClick={() => startGameFunction()}
-                className="btn btn-light"
-              >
-                Start Game
-              </button>
-            )
-          ) : (
-            <button className="btn btn-danger" disabled>
-              Waiting for more owner to start
-            </button>
-          )}
-        </div>
-        <div>
-          <Link to="/lobbies" onClick={(e) => leaveLobby(_id)}>
-            <button className="btn btn-danger">Quit</button>
-          </Link>
-        </div>
-      </div>
+      </div> */}
     </Fragment>
   );
 };

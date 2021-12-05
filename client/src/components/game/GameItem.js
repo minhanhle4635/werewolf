@@ -4,7 +4,10 @@ import { connect } from 'react-redux';
 import { endGame, submitVote, updateGameInfo } from '../../actions/game';
 import { leaveLobby } from '../../actions/lobby';
 import { Link } from 'react-router-dom';
+import ENDPOINT from '../../utils/deploy';
 import io from 'socket.io-client';
+const socket = io(ENDPOINT);
+
 const GameItem = ({
   submitVote,
   game,
@@ -79,17 +82,17 @@ const GameItem = ({
     submitVote(_id, formData);
   };
 
-  let socket = io('http://localhost:5000');
-
   useEffect(() => {
-    socket.on('ABC', (room) => {
-      debugger;
+    socket.on('VOTE_COUNTED', (room) => {
       updateGameInfo(room);
     });
 
     socket.on('GAME_END', (room) => {
       endGame();
     });
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return gameOver === false ? (
@@ -117,8 +120,8 @@ const GameItem = ({
             className={
               'flex flex-wrap items-start justify-start h-full w-full p-1 ' +
               (phase === 'DAY'
-                ? 'bg-phase-day bg-cover'
-                : 'bg-phase-night bg-cover')
+                ? 'bg-day-cover bg-cover'
+                : 'bg-night-cover bg-cover')
             }
           >
             {game &&
@@ -196,10 +199,10 @@ const GameItem = ({
                     </form>
                   </div>
                 ) : (
-                  <form>
-                    <div>Wolf Voting</div>
-                    {players.find((player) =>
-                      player.roles === 'WOLF' ? (
+                  <div>
+                    <div className="items-center">Wolf Voting</div>
+                    <form onSubmit={(e) => onSubmit(e)}>
+                      {roles === 'WOLF' ? (
                         <div>
                           <select
                             className="border-2"
@@ -219,12 +222,15 @@ const GameItem = ({
                                 </option>
                               ))}
                           </select>
+                          <button className="border-2" type="submit">
+                            Vote
+                          </button>
                         </div>
                       ) : (
-                        <div>Waiting for night end</div>
-                      )
-                    )}
-                  </form>
+                        <div>Waiting for the night end</div>
+                      )}
+                    </form>
+                  </div>
                 )}
               </div>
             )}
@@ -237,7 +243,7 @@ const GameItem = ({
     <Fragment>
       <div>
         <div>
-          {players.filter(
+          {!!players.find(
             (player) =>
               playerStatus[player._id] === 'ALIVE' &&
               roles[player._id] === 'WOLF'

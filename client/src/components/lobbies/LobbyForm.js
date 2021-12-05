@@ -31,7 +31,7 @@ const LobbyForm = ({ createLobby }) => {
   return (
     <div className="flex  w-full h-full flex-col items-start justify-items-center p-8 space-y-2 bg-create-room-cover bg-cover">
       <div className="bg-primary mx-auto">
-        <h3 className="text-2xl font-bold text-white">Creating new Room</h3>
+        <h3 className="text-2xl font-bold">Creating new Room</h3>
       </div>
       <form
         className="w-80 mx-auto bg-blue-800 p-4"

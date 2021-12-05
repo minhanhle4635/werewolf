@@ -5,8 +5,7 @@ import Spinner from '../layout/Spinner';
 import RoomItem from '../room/RoomItem';
 import { getLobby } from '../../actions/lobby';
 import io from 'socket.io-client';
-
-const ENDPOINT = 'http://localhost:5000';
+import ENDPOINT from '../../utils/deploy';
 
 let socket = io(ENDPOINT);
 

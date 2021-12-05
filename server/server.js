@@ -63,19 +63,6 @@ io.on('connection', (socket) => {
   socket.on('ROOM_GENERATED', (generatedGameId) => {
     io.to(generatedGameId).emit('START_GAME', generatedGameId);
   });
-
-  /**
-   * Start game event
-   * client join game
-   */
-  // socket.on('START_GAME', (roomInfor) => {
-  //   console.log(roomInfor);
-  //   /**
-  //    * Khi ma room start -> owner start -> cho emit moi navigate
-  //    * neu user ko o trong
-  //    */
-  //   // TODO
-  // });
 });
 
 //Define Route
@@ -116,6 +103,7 @@ GameEvent.eventEmitter.addListener(
         turn: roomDB.turn,
         phase: roomDB.phase,
       });
+
       if (roomDB.phase === 'NIGHT') {
         await countingNightVotes(roomDB, voteOnTurnPhase);
       } else {
@@ -151,23 +139,31 @@ async function countingDayVotes(room, voteOnTurnPhase) {
       room.playerStatus = playerStatus;
     }
   }
-  const wolfAlive = playerAlive.filter(
+  const playerAlive2 = room.players.filter(
+    (player) => room.playerStatus[player._id.toString()] === 'ALIVE'
+  );
+  const wolfAlive = playerAlive2.filter(
     (player) => room.roles[player._id.toString()] === 'WOLF'
   );
   room.turnTimeStamp = new Date();
+
   if (
-    wolfAlive.length >= playerAlive.length - wolfAlive.length ||
+    wolfAlive.length >= playerAlive2.length - wolfAlive.length ||
     wolfAlive.length === 0
   ) {
     room.status = 'CLOSED';
     await room.save();
-    io.socket.to(room.id).emit('GAME_END');
+    io.emit('GAME_END', room);
   } else {
     // GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
     room.phase = 'NIGHT';
     await room.save();
-    io.to(room.id).emit('ABC');
-    io.socket.to(room.id).emit('VOTE_COUNTED', room);
+    const returnedObject = room.toObject();
+    delete returnedObject.roles; // return role for the ending screen to display who is wolf/villager?
+    delete returnedObject._id;
+    delete returnedObject.players;
+    delete returnedObject.owner;
+    io.emit('VOTE_COUNTED', returnedObject);
   }
 }
 async function countingNightVotes(room, voteOnTurnPhase) {
@@ -205,7 +201,7 @@ async function countingNightVotes(room, voteOnTurnPhase) {
   ) {
     room.status = 'CLOSED';
     await room.save();
-    io.socket.to(room.id).emit('GAME_END');
+    io.sockets.to(room.id).emit('GAME_END');
   } else {
     // GameEvent.eventEmitter.emit('ROOM_TURN_DAY_START', room.toObject());
     room.turn = room.turn + 1;
@@ -213,7 +209,7 @@ async function countingNightVotes(room, voteOnTurnPhase) {
     await room.save();
     const responseRoom = room.toObject();
     delete responseRoom.roles;
-    io.socket.to(room.id).emit('VOTE_COUNTED', responseRoom);
+    io.sockets.to(room.id).emit('VOTE_COUNTED', responseRoom);
   }
 }
 async function countVote(room, voteOnTurnPhase, playerAlive) {

@@ -3,12 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { joinLobby } from '../../actions/lobby';
-import io from 'socket.io-client';
 import { useHistory } from 'react-router-dom';
-
-const ENDPOINT = 'http://localhost:5000';
-
-let socket = io(ENDPOINT);
 
 const LobbyItem = ({
   lobby: {

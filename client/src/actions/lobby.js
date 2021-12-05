@@ -12,7 +12,9 @@ import {
   JOIN_LOBBY,
 } from './types';
 
-let socket = io('http://localhost:5000');
+import ENDPOINT from '../utils/deploy';
+
+let socket = io(ENDPOINT);
 
 //Get All Lobbies
 export const getLobbies = () => async (dispatch) => {
